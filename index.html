@@ -51,18 +51,40 @@
 
     ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.55}.footer{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px}
     input[type=radio]{accent-color:var(--gold);width:auto}.country-line{display:flex;align-items:center;gap:6px}.hide{display:none}
+  
+    .floating-admin{display:none;position:fixed;right:14px;bottom:14px;z-index:80;gap:8px;flex-direction:column}
+    body.admin-mode .floating-admin{display:flex}
+    .floating-admin button{box-shadow:0 10px 28px rgba(0,0,0,.35)}
+    .guess-hidden{color:var(--muted);font-style:italic}
+    .locked-note{display:inline-block;margin-top:8px;color:var(--gold);font-size:13px;font-weight:800}
+    
+  
+    .public-floating-nav{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;flex-direction:column;gap:8px}
+    body.admin-mode .public-floating-nav{display:none}
+    .public-floating-nav button{box-shadow:0 10px 28px rgba(0,0,0,.35)}
+    body.admin-mode::before{content:"";position:fixed;inset:0;pointer-events:none;border:6px solid rgba(255,209,102,.75);z-index:60}
+    .admin-status-card{margin-top:10px;background:rgba(255,209,102,.14);border:1px solid rgba(255,209,102,.45);border-radius:14px;padding:10px;color:#ffe7a3;font-weight:800}
+    .toast-save{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);z-index:120;background:rgba(46,229,157,.95);color:#062033;font-weight:900;padding:12px 16px;border-radius:999px;box-shadow:0 14px 34px rgba(0,0,0,.35);opacity:0;transition:.25s ease;pointer-events:none}
+    .toast-save.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
   </style>
 </head>
-<body class="admin-mode">
+<body class="">
+<div class="public-floating-nav">
+  <button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})">Topo</button>
+  <button class="secondary" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})">Rodapé</button>
+</div>
+<div class="toast-save" id="toastSave">✅ Alterações salvas</div>
+
 
 <header>
   <h1>🏆 Bolão da Copa Só Resenha</h1>
   <p class="subtitle">Acompanhe ranking, jogos, palpites e premiação atual do Bolão da Copa Só Resenha.</p>
   <div class="hero-stats">
     <div class="hero-stat">📅 Início oficial<strong>19/06/2026</strong></div>
-    <div class="hero-stat">👥 Participantes<strong id="heroParticipants">5</strong></div>
-    <div class="hero-stat">💰 Premiação<strong id="heroPrize">R$&nbsp;50,00</strong></div>
-    <div class="hero-stat">⚽ Atualizado em<strong id="heroUpdated">18/06/2026, 19:19</strong></div>
+    <div class="hero-stat">👥 Participantes<strong id="heroParticipants">6</strong></div>
+    <div class="hero-stat">💰 Premiação<strong id="heroPrize">R$&nbsp;100,00</strong></div>
+    <div class="hero-stat">⚽ Atualizado em<strong id="heroUpdated">18/06/2026, 20:45</strong></div>
   </div>
   <div class="pillrow">
     <span class="pill">Entrada inicial: <strong id="entryFeeLabel">R$&nbsp;50,00</strong></span>
@@ -82,7 +104,7 @@
 
   <div class="card span4">
     <h2>🏅 Premiação atual</h2>
-    <div class="money" id="totalPrize">R$&nbsp;50,00</div>
+    <div class="money" id="totalPrize">R$&nbsp;100,00</div>
     <p class="small muted"><span id="paidCount">2</span> participante(s) pago(s).</p>
   </div>
 
@@ -90,12 +112,12 @@
 
   <div class="card span12">
     <h2>🥇 Pódio</h2>
-    <div class="podium" id="podium"><div class="podium-card"><div class="podium-medal">🥇</div><div class="podium-name">Banzé</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div><div class="podium-card"><div class="podium-medal">🥈</div><div class="podium-name">Bryan (User Teste)</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div><div class="podium-card"><div class="podium-medal">🥉</div><div class="podium-name">Dé</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div></div>
+    <div class="podium" id="podium"><div class="podium-card"><div class="podium-medal">🥇</div><div class="podium-name">Banzé</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div><div class="podium-card"><div class="podium-medal">🥈</div><div class="podium-name">Bryan (Sem Premiação)</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div><div class="podium-card"><div class="podium-medal">🥉</div><div class="podium-name">Dé</div><div class="podium-points">0 ponto(s)</div><div class="small muted">0 placar(es) exato(s)</div></div></div>
   </div>
 
   <div class="card span7">
-    <div class="ranking-head"><h2>🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()" style="display: none;">Ver ranking completo</button></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"><tr><td><span class="rank">1</span></td><td><strong>Banzé</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/br.png" alt="Bandeira Brasil" onerror="this.outerHTML='🏳️'"> Brasil</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">2</span></td><td><strong>Bryan (User Teste)</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/br.png" alt="Bandeira Brasil" onerror="this.outerHTML='🏳️'"> Brasil</td><td class="paid">Pago</td></tr><tr><td><span class="rank">3</span></td><td><strong>Dé</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/es.png" alt="Bandeira Espanha" onerror="this.outerHTML='🏳️'"> Espanha</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">4</span></td><td><strong>Jabá</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/fr.png" alt="Bandeira França" onerror="this.outerHTML='🏳️'"> França</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">5</span></td><td><strong>Nenê</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/ar.png" alt="Bandeira Argentina" onerror="this.outerHTML='🏳️'"> Argentina</td><td class="paid">Pago</td></tr></tbody></table></div>
+    <div class="ranking-head"><h2>🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()" style="display: inline-block;">Ver ranking completo</button></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"><tr><td><span class="rank">1</span></td><td><strong>Banzé</strong></td><td><strong>0</strong></td><td>0</td><td><span class="flag smallflag" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span> -</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">2</span></td><td><strong>Bryan (Sem Premiação)</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/fr.png" alt="Bandeira França" onerror="this.outerHTML='🏳️'"> França</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">3</span></td><td><strong>Dé</strong></td><td><strong>0</strong></td><td>0</td><td><span class="flag smallflag" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span> -</td><td class="pending">Pendente</td></tr><tr><td><span class="rank">4</span></td><td><strong>Eraldo</strong></td><td><strong>0</strong></td><td>0</td><td><img class="flag smallflag" src="https://flagcdn.com/w80/es.png" alt="Bandeira Espanha" onerror="this.outerHTML='🏳️'"> Espanha</td><td class="paid">Pago</td></tr><tr><td><span class="rank">5</span></td><td><strong>Jabá</strong></td><td><strong>0</strong></td><td>0</td><td><span class="flag smallflag" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span> -</td><td class="pending">Pendente</td></tr><tr><td colspan="6" class="muted small">Mostrando top 5 de 6 participante(s). Clique em "Ver ranking completo" para expandir.</td></tr></tbody></table></div>
   </div>
 
   <div class="card span5">
@@ -135,11 +157,12 @@
         </div>
         
       <div class="match-details">
+        
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              <tr><td>Nenê</td><td>-</td><td>0</td></tr><tr><td>Banzé</td><td>-</td><td>0</td></tr><tr><td>Dé</td><td>-</td><td>0</td></tr><tr><td>Jabá</td><td>-</td><td>0</td></tr><tr><td>Bryan (User Teste)</td><td>-</td><td>0</td></tr>
+              <tr><td>Nenê</td><td>0 x 0</td><td>0</td></tr><tr><td>Banzé</td><td>0 x 0</td><td>0</td></tr><tr><td>Dé</td><td>0 x 0</td><td>0</td></tr><tr><td>Jabá</td><td>0 x 0</td><td>0</td></tr><tr><td>Bryan (Sem Premiação)</td><td>0 x 0</td><td>0</td></tr><tr><td>Eraldo</td><td>0 x 0</td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -162,11 +185,12 @@
         </div>
         
       <div class="match-details">
+        <span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              <tr><td>Nenê</td><td>-</td><td>0</td></tr><tr><td>Banzé</td><td>-</td><td>0</td></tr><tr><td>Dé</td><td>-</td><td>0</td></tr><tr><td>Jabá</td><td>-</td><td>0</td></tr><tr><td>Bryan (User Teste)</td><td>-</td><td>0</td></tr>
+              <tr><td>Nenê</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Banzé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Dé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Jabá</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Bryan (Sem Premiação)</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Eraldo</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -189,11 +213,12 @@
         </div>
         
       <div class="match-details">
+        <span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              <tr><td>Nenê</td><td>-</td><td>0</td></tr><tr><td>Banzé</td><td>-</td><td>0</td></tr><tr><td>Dé</td><td>-</td><td>0</td></tr><tr><td>Jabá</td><td>-</td><td>0</td></tr><tr><td>Bryan (User Teste)</td><td>-</td><td>0</td></tr>
+              <tr><td>Nenê</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Banzé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Dé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Jabá</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Bryan (Sem Premiação)</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Eraldo</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -216,11 +241,12 @@
         </div>
         
       <div class="match-details">
+        <span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              <tr><td>Nenê</td><td>-</td><td>0</td></tr><tr><td>Banzé</td><td>-</td><td>0</td></tr><tr><td>Dé</td><td>-</td><td>0</td></tr><tr><td>Jabá</td><td>-</td><td>0</td></tr><tr><td>Bryan (User Teste)</td><td>-</td><td>0</td></tr>
+              <tr><td>Nenê</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Banzé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Dé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Jabá</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Bryan (Sem Premiação)</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Eraldo</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -243,11 +269,12 @@
         </div>
         
       <div class="match-details">
+        <span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              <tr><td>Nenê</td><td>-</td><td>0</td></tr><tr><td>Banzé</td><td>-</td><td>0</td></tr><tr><td>Dé</td><td>-</td><td>0</td></tr><tr><td>Jabá</td><td>-</td><td>0</td></tr><tr><td>Bryan (User Teste)</td><td>-</td><td>0</td></tr>
+              <tr><td>Nenê</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Banzé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Dé</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Jabá</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Bryan (Sem Premiação)</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr><tr><td>Eraldo</td><td><span class="guess-hidden">🔒 Palpite oculto até o início da partida</span></td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -675,7 +702,7 @@
 
   
 </section>
-<div class="footer">Bolão da Copa Só Resenha • Ranking e jogos atualizados ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • v1.0.4 • Release 18/06/2026 • Ranking e jogos atualizados ⚽</div>
 </main>
 
 <script id="initialData" type="application/json">
@@ -700,7 +727,7 @@
       "name": "Banzé",
       "paid": false,
       "paidValue": 50,
-      "champion": "Brasil",
+      "champion": "",
       "joinedAt": "2026-06-18"
     },
     {
@@ -708,7 +735,7 @@
       "name": "Dé",
       "paid": false,
       "paidValue": 50,
-      "champion": "Espanha",
+      "champion": "",
       "joinedAt": "2026-06-18"
     },
     {
@@ -716,15 +743,23 @@
       "name": "Jabá",
       "paid": false,
       "paidValue": 50,
-      "champion": "França",
+      "champion": "",
       "joinedAt": "2026-06-18"
     },
     {
       "id": "p_1781820822647",
-      "name": "Bryan (User Teste)",
-      "paid": true,
+      "name": "Bryan (Sem Premiação)",
+      "paid": false,
       "paidValue": 0,
-      "champion": "Brasil",
+      "champion": "França",
+      "joinedAt": "2026-06-18"
+    },
+    {
+      "id": "p_1781823209006",
+      "name": "Eraldo",
+      "paid": true,
+      "paidValue": 50,
+      "champion": "Espanha",
       "joinedAt": "2026-06-18"
     }
   ],
@@ -756,6 +791,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -790,6 +829,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -820,6 +863,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -854,6 +901,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -884,6 +935,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -918,6 +973,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -948,6 +1007,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -982,6 +1045,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1012,6 +1079,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1046,6 +1117,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1076,6 +1151,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1110,6 +1189,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1140,6 +1223,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1174,6 +1261,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1204,6 +1295,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1238,6 +1333,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1268,6 +1367,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1302,6 +1405,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1332,6 +1439,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1366,6 +1477,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1396,6 +1511,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1430,6 +1549,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1460,6 +1583,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1494,6 +1621,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1524,6 +1655,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1558,6 +1693,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1572,24 +1711,28 @@
       "awayScore": "",
       "guesses": {
         "p_nene": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_banze": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_de": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_bryan": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_1781820822647": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
+        },
+        "p_1781823209006": {
+          "home": "0",
+          "away": "0"
         }
       }
     },
@@ -1604,24 +1747,28 @@
       "awayScore": "",
       "guesses": {
         "p_nene": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_banze": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_de": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_bryan": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
         },
         "p_1781820822647": {
-          "home": "",
-          "away": ""
+          "home": "0",
+          "away": "0"
+        },
+        "p_1781823209006": {
+          "home": "0",
+          "away": "0"
         }
       }
     },
@@ -1636,8 +1783,8 @@
       "awayScore": "",
       "guesses": {
         "p_nene": {
-          "home": "",
-          "away": ""
+          "home": "3",
+          "away": "1"
         },
         "p_banze": {
           "home": "",
@@ -1652,6 +1799,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1686,6 +1837,10 @@
         "p_1781820822647": {
           "home": "",
           "away": ""
+        },
+        "p_1781823209006": {
+          "home": "",
+          "away": ""
         }
       }
     },
@@ -1716,6 +1871,10 @@
           "away": ""
         },
         "p_1781820822647": {
+          "home": "",
+          "away": ""
+        },
+        "p_1781823209006": {
           "home": "",
           "away": ""
         }
@@ -1756,10 +1915,22 @@ const countries={
 };
 
 function loadData(){try{const s=localStorage.getItem(STORAGE_KEY);if(s)return JSON.parse(s)}catch(e){}return JSON.parse(document.getElementById("initialData").textContent)}
+
+let saveToastTimer=null;
+function showSaveToast(){
+  const toast=document.getElementById("toastSave");
+  if(toast){
+    toast.classList.add("show");
+    clearTimeout(saveToastTimer);
+    saveToastTimer=setTimeout(()=>toast.classList.remove("show"),1800);
+  }
+  const status=document.getElementById("saveStatus");
+  if(status) status.textContent="✅ Alterações salvas às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+
 function saveLocal(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  const el=document.getElementById("saveStatus");
-  if(el){el.textContent="✅ Alterações salvas automaticamente às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
+  showSaveToast();
   render()
 }
 function money(v){return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
@@ -1770,6 +1941,9 @@ function gameDateTimeValue(g){
 }
 function getSortedGames(direction="asc"){
   return [...data.games].sort((a,b)=> direction==="desc" ? gameDateTimeValue(b)-gameDateTimeValue(a) : gameDateTimeValue(a)-gameDateTimeValue(b));
+}
+function isGameStarted(g){
+  return Date.now() >= gameDateTimeValue(g);
 }
 function flagImg(team,small=false){const c=countries[String(team||"").trim()];if(!c)return `<span class="flag ${small?'smallflag':''}" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span>`;return `<img class="flag ${small?'smallflag':''}" src="https://flagcdn.com/w80/${c.code}.png" alt="Bandeira ${esc(c.name)}" onerror="this.outerHTML='🏳️'">`}
 function countryOptions(selected){return Object.keys(countries).sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${attr(n)}" ${n===selected?"selected":""}>${n}</option>`).join("")}
@@ -1843,6 +2017,7 @@ function renderPublicGameGroup(list,title,games,openDefault){
 
   games.forEach(g=>{
     const finished=(g.homeScore!==""&&g.awayScore!=="");
+    const started=isGameStarted(g);
     const score=finished?`${g.homeScore} x ${g.awayScore}`:"VS";
     const expanded=expandedGames[g.id]!==undefined ? expandedGames[g.id] : openDefault;
     const compactClass=finished && !expanded ? " finished-compact collapsed" : "";
@@ -1850,11 +2025,16 @@ function renderPublicGameGroup(list,title,games,openDefault){
 
     const details = expanded ? `
       <div class="match-details">
+        ${!started ? `<span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>` : ""}
         <div style="overflow-x:auto;margin-top:12px">
           <table>
             <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
             <tbody>
-              ${data.participants.map(p=>{const gs=g.guesses?.[p.id];return`<tr><td>${esc(p.name)}</td><td>${gs&&gs.home!==""&&gs.away!==""?`${gs.home} x ${gs.away}`:"-"}</td><td>${gamePoints(g,p.id)}</td></tr>`}).join("")}
+              ${data.participants.map(p=>{
+                const gs=g.guesses?.[p.id];
+                const palpite=!started ? `<span class="guess-hidden">🔒 Palpite oculto até o início da partida</span>` : (gs&&gs.home!==""&&gs.away!==""?`${gs.home} x ${gs.away}`:"-");
+                return`<tr><td>${esc(p.name)}</td><td>${palpite}</td><td>${started?gamePoints(g,p.id):0}</td></tr>`
+              }).join("")}
             </tbody>
           </table>
         </div>
@@ -2004,6 +2184,25 @@ function renderAdminGameEditor(g){
   `;
 }
 
+
+
+function updateAdminStatus(opened){
+  const card=document.getElementById("adminStatusCard");
+  if(card) card.textContent = opened ? "🟡 Modo administrador aberto" : "🔧 Admin fechado";
+}
+
+function goToAdminPanel(){
+  const panel=document.getElementById("adminPanel");
+  if(panel) panel.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function closeAdminPanel(){
+  const panel=document.getElementById("adminPanel");
+  if(panel) panel.classList.remove("open");
+  document.body.classList.remove("admin-mode");
+  updateAdminStatus(false);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 function toggleAdminGame(id){
   const g=data.games.find(x=>x.id===id);
   const finished=g && g.homeScore!=="" && g.awayScore!=="";
@@ -2071,7 +2270,9 @@ function toggleAdmin(){
   const panel=document.getElementById("adminPanel");
   const opened=panel.classList.toggle("open");
   document.body.classList.toggle("admin-mode", opened);
+  updateAdminStatus(opened);
   if(opened) panel.scrollIntoView({behavior:"smooth", block:"start"});
+  else window.scrollTo({top:0,behavior:"smooth"});
 }
 async function copyPix(){try{await navigator.clipboard.writeText(data.config.pix);alert("PIX copiado: "+data.config.pix)}catch(e){alert("PIX: "+data.config.pix)}}
 function resetLocalData(){if(!confirm("Apagar alterações locais deste navegador?"))return;localStorage.removeItem(STORAGE_KEY);data=JSON.parse(document.getElementById("initialData").textContent);selectedParticipantId=null;render()}
@@ -2083,49 +2284,8 @@ function exportHtml(){
   const adminBanner=publicDoc.querySelector(".admin-banner");
   if(adminBanner) adminBanner.remove();
 
-  const adminPanel=publicDoc.querySelector("#adminPanel");
-  if(adminPanel) adminPanel.remove();
-
-  publicDoc.querySelectorAll("script").forEach(script=>{
-    if(script.id==="initialData"){
-      script.textContent="\n"+JSON.stringify(data,null,2)+"\n";
-    }
-  });
-
-  publicDoc.querySelectorAll(".card").forEach(card=>{
-    const txt=card.textContent||"";
-    if(txt.includes("Administração") || txt.includes("Abrir/Fechar admin") || txt.includes("Exportar público")){
-      card.remove();
-    }
-  });
-
-  let publicHtml="<!DOCTYPE html>\n"+publicDoc.outerHTML;
-
-  publicHtml=publicHtml
-    .replace(/<title>.*?<\/title>/,"<title>Bolão da Copa Só Resenha</title>")
-    .replace(/<p class="subtitle">.*?<\/p>/,'<p class="subtitle">Acompanhe ranking, jogos, palpites e premiação atual do Bolão da Copa Só Resenha.</p>')
-    .replace(/<div class="footer">.*?<\/div>/,'<div class="footer">Bolão da Copa Só Resenha • Ranking e jogos atualizados ⚽</div>');
-
-  publicHtml=publicHtml.replace(
-    "renderPodium();renderRanking();renderGames();if(document.getElementById('participantsAdmin'))renderParticipantsAdmin();if(document.getElementById('gamesAdmin'))renderGamesAdmin();",
-    "renderPodium();renderRanking();renderGames();if(document.getElementById('participantsAdmin'))renderParticipantsAdmin();if(document.getElementById('gamesAdmin'))renderGamesAdmin();"
-  );
-
-  const blob=new Blob([publicHtml],{type:"text/html;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="index.html";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-function exportHtml(){
-  data.games.forEach(g=>delete g.justAdded);
-
-  const publicDoc=document.documentElement.cloneNode(true);
-
-  const adminBanner=publicDoc.querySelector(".admin-banner");
-  if(adminBanner) adminBanner.remove();
+  const floating=publicDoc.querySelector(".floating-admin");
+  if(floating) floating.remove();
 
   const adminPanel=publicDoc.querySelector("#adminPanel");
   if(adminPanel) adminPanel.remove();
@@ -2145,7 +2305,7 @@ function exportHtml(){
   publicHtml=publicHtml
     .replace(/<title>.*?<\/title>/,"<title>Bolão da Copa Só Resenha</title>")
     .replace(/<p class="subtitle">.*?<\/p>/,'<p class="subtitle">Acompanhe ranking, jogos, palpites e premiação atual do Bolão da Copa Só Resenha.</p>')
-    .replace(/<div class="footer">.*?<\/div>/,'<div class="footer">Bolão da Copa Só Resenha • Ranking e jogos atualizados ⚽</div>')
+    .replace(/<div class="footer">.*?<\/div>/,'<div class="footer">🏆 Bolão da Copa Só Resenha • v1.0.4 • Release 18/06/2026 • Ranking e jogos atualizados ⚽</div>')
     .replace("renderPodium();renderRanking();renderGames();if(document.getElementById('participantsAdmin'))renderParticipantsAdmin();if(document.getElementById('gamesAdmin'))renderGamesAdmin();","renderPodium();renderRanking();renderGames();if(document.getElementById('participantsAdmin'))renderParticipantsAdmin();if(document.getElementById('gamesAdmin'))renderGamesAdmin();");
 
   const blob=new Blob([publicHtml],{type:"text/html;charset=utf-8"});
