@@ -63,7 +63,7 @@
     </div>
     <div id="appCard" class="hide">
       <div class="topbar"><div><h2 id="helloTitle">⚽ Meus palpites</h2><p class="muted small" id="summaryText"></p></div></div>
-      <div class="actions"><button class="secondary" onclick="setFilter('all')">Todos</button><button class="secondary" onclick="setFilter('missing')">Faltam preencher</button><button class="secondary" onclick="setFilter('open')">Jogos em aberto</button><button class="secondary" onclick="setFilter('locked')">Bloqueados/Encerrados</button></div>
+      <div class="actions"><button class="secondary" onclick="setFilter('all')">Todos</button><button class="secondary" onclick="setFilter('today')">Hoje</button><button class="secondary" onclick="setFilter('tomorrow')">Amanhã</button><button class="secondary" onclick="setFilter('missing')">Faltam preencher</button><button class="secondary" onclick="setFilter('open')">Jogos em aberto</button><button class="secondary" onclick="setFilter('locked')">Bloqueados/Encerrados</button></div>
       <div id="myGamesList" class="palpites-grid"></div>
     </div>
   </div>
@@ -74,7 +74,7 @@
   <div class="card span12 public-only"><h2>⚽ Rodada / Jogos <span class="games-count" id="publicGamesCount"></span></h2><div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Expandir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Recolher concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v5 • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v7 • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -96,11 +96,86 @@ function toggleGameDetails(id){const g=data.games.find(x=>x.id===id);const finis
 function fillParticipants(){const sel=document.getElementById('participantSelect');sel.innerHTML='';data.participants.filter(p=>p.active!==false).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR',{sensitivity:'base'})).forEach(p=>sel.insertAdjacentHTML('beforeend',`<option value="${esc(p.id)}">${esc(p.name)}</option>`))}
 function openPalpiteiros(){document.body.classList.add('palpiteiro-mode');document.getElementById('palpiteirosPanel').classList.remove('hide');document.getElementById('palpiteirosPanel').scrollIntoView({behavior:'smooth',block:'start'})}function closePalpiteiros(){document.body.classList.remove('palpiteiro-mode');document.getElementById('palpiteirosPanel').classList.add('hide');window.scrollTo({top:0,behavior:'smooth'})}
 function login(){const id=document.getElementById('participantSelect').value;const pin=document.getElementById('pinInput').value.trim();const p=data.participants.find(x=>x.id===id);if(!p){document.getElementById('loginStatus').textContent='Participante não encontrado.';return}if(String(p.pin||'')!==pin){document.getElementById('loginStatus').textContent='PIN inválido.';return}currentParticipant=p;document.getElementById('loginCard').classList.add('hide');document.getElementById('appCard').classList.remove('hide');document.getElementById('helloTitle').textContent=`⚽ Meus palpites — ${p.name}`;renderMyGames()}function logout(){currentParticipant=null;document.getElementById('pinInput').value='';document.getElementById('loginCard').classList.remove('hide');document.getElementById('appCard').classList.add('hide')}function setFilter(f){filter=f;renderMyGames()}
-function hasGuess(g,pid){const gs=g.guesses?.[pid];return !!(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined)}function gameGroup(g){const locked=isLocked(g), filled=hasGuess(g,currentParticipant.id);if(!locked&&!filled)return'missing';if(!locked&&filled)return'filled';return'locked'}function groupTitle(key,count){const titles={open:`⚽ Jogos em aberto (${count})`,missing:`🔥 Faltam preencher (${count})`,filled:`✅ Já preenchidos (${count})`,locked:`🔒 Bloqueados/Encerrados (${count})`};return `<div class="section-title">${titles[key]}</div>`}
+function hasGuess(g,pid){const gs=g.guesses?.[pid];return !!(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined)}function gameGroup(g){const locked=isLocked(g), filled=hasGuess(g,currentParticipant.id);if(!locked&&!filled)return'missing';if(!locked&&filled)return'filled';return'locked'}
+function dateKeyFromNow(addDays=0){
+  const base=new Date(Date.now()+addDays*24*60*60*1000);
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(base);
+  const get=t=>parts.find(p=>p.type===t)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+function gameDateKey(g){
+  const d=String(g.date||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d))return d;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(d)){const [day,month,year]=d.split('/');return `${year}-${month}-${day}`;}
+  return '';
+}
+function groupTitle(key,count){const titles={open:`⚽ Jogos em aberto (${count})`,today:`📅 Jogos de hoje (${count})`,tomorrow:`📆 Jogos de amanhã (${count})`,missing:`🔥 Faltam preencher (${count})`,filled:`✅ Já preenchidos (${count})`,locked:`🔒 Bloqueados/Encerrados (${count})`};return `<div class="section-title">${titles[key]}</div>`}
 let toastTimer=null;function showToast(msg){const toast=document.getElementById('toastMsg');toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2500)}
 function scoreInput(id,value){const safe=value===undefined||value===null||value===''?'':String(value).replace(/\D/g,'');return `<input id="${id}" type="number" min="0" step="1" inputmode="numeric" value="${safe}" onkeydown="if((event.key==='ArrowUp'||event.key==='ArrowDown') && this.value===''){event.preventDefault();this.value='0';this.dispatchEvent(new Event('input',{bubbles:true}));}" onmousedown="if(this.value==='' && event.offsetX > this.clientWidth-36){this.dataset.spinEmpty='1';setTimeout(()=>{delete this.dataset.spinEmpty},180)}" oninput="if(this.dataset.spinEmpty==='1'){this.value='0';delete this.dataset.spinEmpty;} if(this.value !== '' && Number(this.value) < 0) this.value=''; if(this.value.length > 2) this.value=this.value.slice(0,2);">`}
 function renderMyMatchCard(g){if(!g.guesses)g.guesses={};const gs=g.guesses[currentParticipant.id]||{home:'',away:''};const locked=isLocked(g), finished=(g.homeScore!==''&&g.awayScore!==''), filled=hasGuess(g,currentParticipant.id);const palpiteAtual=filled?`${esc(gs.home)} x ${esc(gs.away)}`:'Ainda não preenchido';if(locked)return `<div class="card compact"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="locked">🔒 Bloqueado</span></div><div class="teams"><strong>${esc(g.home)}</strong> <span class="score">${finished?`${g.homeScore} x ${g.awayScore}`:'x'}</span> <strong>${esc(g.away)}</strong></div><p class="small muted">${fmt(g.date)} • ${esc(g.time)} • Palpite: <strong>${palpiteAtual}</strong></p></div>`;return `<div class="card ${filled?'':'missing-card'}"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="${filled?'open':'locked'}">${filled?'✅ Preenchido':'⚠️ Falta preencher'}</span></div><div class="teams"><strong>${esc(g.home)}</strong> <span class="score">${finished?`${g.homeScore} x ${g.awayScore}`:'x'}</span> <strong>${esc(g.away)}</strong></div>${filled?`<div class="current-guess">Palpite atual: <strong>${palpiteAtual}</strong></div>`:''}<p class="small muted">${fmt(g.date)} • ${esc(g.time)} • bloqueia 15 min antes</p><div class="guess-row"><div><label>${esc(g.home)}</label>${scoreInput(`h_${g.id}`,gs.home)}</div><div class="x">x</div><div><label>${esc(g.away)}</label>${scoreInput(`a_${g.id}`,gs.away)}</div></div><div class="actions"><button class="good" onclick="saveGuess('${esc(g.id)}')">${filled?'Atualizar palpite':'Salvar palpite'}</button></div></div>`}
-function renderMyGames(){const list=document.getElementById('myGamesList');list.innerHTML='';const games=[...data.games].sort((a,b)=>{const pr={missing:0,filled:1,locked:2};return pr[gameGroup(a)]-pr[gameGroup(b)]||gameTime(a)-gameTime(b)});const counts={missing:games.filter(g=>gameGroup(g)==='missing').length,filled:games.filter(g=>gameGroup(g)==='filled').length,locked:games.filter(g=>gameGroup(g)==='locked').length};const openCount=counts.missing+counts.filled;document.getElementById('summaryText').innerHTML=`<span class="pill">⚽ Em aberto: <strong>${openCount}</strong></span> <span class="pill">⚠️ Faltam preencher: <strong>${counts.missing}</strong></span> <span class="pill">✅ Preenchidos: <strong>${counts.filled}</strong></span> <span class="pill">🔒 Bloqueados/Encerrados: <strong>${counts.locked}</strong></span>`;let filtered=games.filter(g=>filter==='all'||(filter==='missing'&&gameGroup(g)==='missing')||(filter==='open'&&!isLocked(g))||(filter==='locked'&&isLocked(g)));if(!filtered.length){list.insertAdjacentHTML('beforeend','<div class="card"><p class="muted">Nenhum jogo encontrado para este filtro.</p></div>');return}if(filter==='all'){['missing','filled','locked'].forEach(key=>{const group=filtered.filter(g=>gameGroup(g)===key);if(group.length){list.insertAdjacentHTML('beforeend',groupTitle(key,group.length));group.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))}})}else if(filter==='open'){list.insertAdjacentHTML('beforeend',groupTitle('open',filtered.length));['missing','filled'].forEach(key=>{const group=filtered.filter(g=>gameGroup(g)===key);if(group.length){list.insertAdjacentHTML('beforeend',groupTitle(key,group.length));group.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))}})}else filtered.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))}
+function renderMyGames(){
+  const list=document.getElementById('myGamesList');
+  list.innerHTML='';
+  const games=[...data.games].sort((a,b)=>{
+    const pr={missing:0,filled:1,locked:2};
+    return pr[gameGroup(a)]-pr[gameGroup(b)]||gameTime(a)-gameTime(b)
+  });
+  const counts={
+    missing:games.filter(g=>gameGroup(g)==='missing').length,
+    filled:games.filter(g=>gameGroup(g)==='filled').length,
+    locked:games.filter(g=>gameGroup(g)==='locked').length
+  };
+  const openCount=counts.missing+counts.filled;
+  document.getElementById('summaryText').innerHTML=`<span class="pill">⚽ Em aberto: <strong>${openCount}</strong></span> <span class="pill">⚠️ Faltam preencher: <strong>${counts.missing}</strong></span> <span class="pill">✅ Preenchidos: <strong>${counts.filled}</strong></span> <span class="pill">🔒 Bloqueados/Encerrados: <strong>${counts.locked}</strong></span>`;
+
+  const todayKey=dateKeyFromNow(0);
+  const tomorrowKey=dateKeyFromNow(1);
+
+  let filtered=games.filter(g=>
+    filter==='all'||
+    (filter==='today'&&gameDateKey(g)===todayKey)||
+    (filter==='tomorrow'&&gameDateKey(g)===tomorrowKey)||
+    (filter==='missing'&&gameGroup(g)==='missing')||
+    (filter==='open'&&!isLocked(g))||
+    (filter==='locked'&&isLocked(g))
+  );
+
+  if(!filtered.length){
+    const msg=filter==='today'?'Nenhum jogo encontrado para hoje.':filter==='tomorrow'?'Nenhum jogo encontrado para amanhã.':'Nenhum jogo encontrado para este filtro.';
+    list.insertAdjacentHTML('beforeend',`<div class="card"><p class="muted">${msg}</p></div>`);
+    return
+  }
+
+  if(filter==='all'){
+    ['missing','filled','locked'].forEach(key=>{
+      const group=filtered.filter(g=>gameGroup(g)===key);
+      if(group.length){
+        list.insertAdjacentHTML('beforeend',groupTitle(key,group.length));
+        group.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))
+      }
+    })
+  }else if(filter==='open'){
+    list.insertAdjacentHTML('beforeend',groupTitle('open',filtered.length));
+    ['missing','filled'].forEach(key=>{
+      const group=filtered.filter(g=>gameGroup(g)===key);
+      if(group.length){
+        list.insertAdjacentHTML('beforeend',groupTitle(key,group.length));
+        group.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))
+      }
+    })
+  }else if(filter==='today'||filter==='tomorrow'){
+    list.insertAdjacentHTML('beforeend',groupTitle(filter,filtered.length));
+    ['missing','filled','locked'].forEach(key=>{
+      const group=filtered.filter(g=>gameGroup(g)===key);
+      if(group.length){
+        list.insertAdjacentHTML('beforeend',groupTitle(key,group.length));
+        group.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))
+      }
+    })
+  }else{
+    filtered.forEach(g=>list.insertAdjacentHTML('beforeend',renderMyMatchCard(g)))
+  }
+}
 async function saveGuess(gameId){try{const g=data.games.find(x=>x.id===gameId);if(!g)return;if(isLocked(g)){alert('Este jogo já está bloqueado. O limite é 15 minutos antes da partida.');return}const home=document.getElementById('h_'+gameId).value, away=document.getElementById('a_'+gameId).value;if(home===''||away===''){alert('Preencha os dois placares.');return}if(!/^\d+$/.test(home)||!/^\d+$/.test(away)){alert('Informe apenas números inteiros no placar.');return}if(!g.guesses)g.guesses={};const wasFilled=hasGuess(g,currentParticipant.id);g.guesses[currentParticipant.id]={home:String(Number(home)),away:String(Number(away)),updatedAt:new Date().toISOString(),updatedBy:currentParticipant.id};await BOLAO_REF.update({games:data.games,ultimaAtualizacao:new Date().toISOString()});log(`Palpite ${wasFilled?'atualizado':'salvo'}: ${currentParticipant.name} • ${g.home} ${Number(home)} x ${Number(away)} ${g.away}`);showToast(wasFilled?'✅ Palpite atualizado com sucesso':'✅ Palpite salvo com sucesso');render();renderMyGames()}catch(e){console.error(e);log('Erro ao salvar palpite: '+e.message);alert('Erro ao salvar. Veja o log.')}}
 async function copyPix(){try{await navigator.clipboard.writeText(data.config.pix||'');alert('PIX copiado: '+(data.config.pix||''))}catch(e){alert('PIX: '+(data.config.pix||''))}}
 loadBolao();
