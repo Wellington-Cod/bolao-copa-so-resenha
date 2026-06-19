@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Online - Bolão da Copa Só Resenha</title>
+  <style>
+    :root{--bg:#06192c;--card:#0e2a46;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--line:rgba(255,255,255,.14);--radius:18px}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),var(--bg);color:var(--text)}
+    header{padding:24px 14px;text-align:center}h1{margin:0;font-size:clamp(30px,7vw,48px)}.muted{color:var(--muted)}.wrap{width:min(1180px,100%);margin:auto;padding:0 14px 36px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{grid-column:span 12;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));border:1px solid var(--line);border-radius:var(--radius);padding:15px;box-shadow:0 14px 36px rgba(0,0,0,.28)}@media(min-width:900px){.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:span 12}}
+    h2{margin:0 0 12px;font-size:20px}h3{color:var(--gold);margin:18px 0 10px}button,input,select{font:inherit}button{border:0;border-radius:12px;padding:10px 12px;background:var(--gold);color:#062033;font-weight:900;cursor:pointer}button.secondary{background:rgba(255,255,255,.12);border:1px solid var(--line);color:var(--text)}button.good{background:var(--green);color:#062033}button.danger{background:var(--red);color:#fff}input,select{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.22);color:var(--text)}select option{color:#111}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.formgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px}.field{grid-column:span 12}.half{grid-column:span 12}.third{grid-column:span 12}.quarter{grid-column:span 12}@media(min-width:760px){.half{grid-column:span 6}.third{grid-column:span 4}.quarter{grid-column:span 3}}label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;border-bottom:1px solid var(--line);font-size:14px;text-align:left;vertical-align:middle}th{color:var(--gold);background:rgba(0,0,0,.16)}.box{border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0;background:rgba(0,0,0,.13)}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--green);color:#062033;padding:12px 16px;border-radius:999px;font-weight:900;display:none;z-index:99}.toast.show{display:block}.pill{display:inline-block;border-radius:999px;padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:13px}.ok{color:var(--green);font-weight:900}.bad{color:var(--red);font-weight:900}.footer{text-align:center;color:var(--muted);padding:18px}.sticky{position:sticky;top:0;z-index:50;background:rgba(6,25,44,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 14px}.score-input{max-width:90px;text-align:center}.game-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}.finished-list.collapsed{display:none}.copy-btn{white-space:nowrap}
+
+    .participants-table td,.participants-table th{white-space:nowrap}.participants-table input[type=radio]{accent-color:var(--gold)}.participants-table tr.selected-row{background:rgba(255,209,102,.10);outline:1px solid rgba(255,209,102,.35)}.radio-cell{width:34px;text-align:center}.champion-line{display:flex;align-items:center;gap:8px}.team-flag{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-right:4px}.team-flag-img{width:24px;height:17px;object-fit:cover;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.25);background:#fff}.edit-panel{margin-top:12px;border:1px solid rgba(255,209,102,.38);border-radius:16px;padding:12px;background:rgba(255,209,102,.08)}.copy-pin-row{display:flex;gap:8px;align-items:center}.copy-pin-row input{min-width:90px}.paid-status{color:var(--green);font-weight:900}.pending-status{color:var(--red);font-weight:900}.participant-name{font-weight:900}.game-title-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="sticky"><div class="wrap" style="padding:0"><div class="actions"><button onclick="loadFirebase()">🔄 Carregar Firebase</button><button class="good" onclick="saveFirebase()">💾 Salvar tudo</button><button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})">Topo</button></div></div></div>
+  <header><h1>🔐 Admin Online</h1><p class="muted">Bolão da Copa Só Resenha • Firebase</p><div id="status" class="pill">Carregando...</div></header>
+  <main class="wrap">
+    <section class="grid">
+      <div class="card span4"><h2>📊 Resumo</h2><p>Participantes: <strong id="countParticipants">0</strong></p><p>Jogos: <strong id="countGames">0</strong></p><p>Palpites preenchidos: <strong id="countGuesses">0</strong></p><p class="muted">Última atualização: <span id="lastUpdate">--</span></p></div>
+      <div class="card span8"><h2>⚙️ Configurações</h2><div class="formgrid"><div class="field quarter"><label>Entrada inicial</label><input id="entryFee" type="number" min="0"></div><div class="field quarter"><label>Entrada tardia</label><input id="lateFee" type="number" min="0"></div><div class="field quarter"><label>Pontos campeão</label><input id="championPoints" type="number" min="0"></div><div class="field quarter"><label>PIX</label><input id="pix"></div></div><div class="actions"><button class="good" onclick="applyConfig()">Aplicar configurações</button></div></div>
+      <div class="card span12"><h2>👥 Participantes</h2><div class="formgrid"><div class="field quarter"><label>Nome</label><input id="newName" placeholder="Novo participante"></div><div class="field quarter"><label>PIN</label><input id="newPin" placeholder="1234"></div><div class="field quarter"><label>Valor pago</label><input id="newPaidValue" type="number" value="50" min="0"></div><div class="field quarter"><label>Campeão</label><select id="newChampion"></select></div></div><div class="actions"><button onclick="addParticipant()">Adicionar participante</button><button class="secondary" onclick="editSelectedParticipant()">Editar selecionado</button><button class="danger" onclick="removeSelectedParticipant()">Excluir selecionado</button></div><div style="overflow-x:auto;margin-top:12px"><table class="participants-table"><thead><tr><th></th><th>Participante</th><th>PIN</th><th>Status</th><th>Valor</th><th>Campeão</th></tr></thead><tbody id="participantsBody"></tbody></table></div><div id="participantEditPanel"></div></div>
+      <div class="card span12"><h2>⚽ Jogos e Resultados</h2><div class="formgrid"><div class="field third"><label>Rodada</label><input id="gRound" placeholder="Rodada 20/06"></div><div class="field quarter"><label>Data</label><input id="gDate" type="date"></div><div class="field quarter"><label>Hora</label><input id="gTime" type="time"></div><div class="field third"><label>Seleção casa</label><select id="gHome"></select></div><div class="field third"><label>Seleção fora</label><select id="gAway"></select></div></div><div class="actions"><button onclick="addGame()">Adicionar jogo</button></div><div id="gamesAdmin"></div></div>
+    </section>
+  </main>
+  <div class="footer">Admin Online • v1.6 • Firebase</div><div class="toast" id="toast">Salvo</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyB7ltzdqV_nrOBVDXgMmCz6r7j6BzPFHvE",authDomain:"bolao-copa-so-resenha.firebaseapp.com",projectId:"bolao-copa-so-resenha",storageBucket:"bolao-copa-so-resenha.firebasestorage.app",messagingSenderId:"583874363392",appId:"1:583874363392:web:1781437483711ddd3c98e5",measurementId:"G-D56C3MV1JT"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();const BOLAO_REF=db.collection('boloes').doc('copa2026');
+let data={config:{entryFee:50,lateFee:80,pix:'',championPoints:9},participants:[],games:[]};
+let showAllFinished=false;
+let selectedParticipantId=null;
+let editingParticipantId=null;
+const countries=['','África do Sul','Alemanha','Arábia Saudita','Argélia','Argentina','Austrália','Áustria','Bélgica','Bósnia e Herzegovina','Brasil','Cabo Verde','Camarões','Canadá','Catar','Colômbia','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Holanda','Inglaterra','Irã','Iraque','Japão','Jordânia','Marrocos','México','Nigéria','Noruega','Nova Zelândia','Panamá','Paraguai','Portugal','RD Congo','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão'];
+const countryFlags={
+  'África do Sul':'🇿🇦','Alemanha':'🇩🇪','Arábia Saudita':'🇸🇦','Argélia':'🇩🇿','Argentina':'🇦🇷','Austrália':'🇦🇺','Áustria':'🇦🇹','Bélgica':'🇧🇪','Bósnia e Herzegovina':'🇧🇦','Brasil':'🇧🇷','Cabo Verde':'🇨🇻','Camarões':'🇨🇲','Canadá':'🇨🇦','Catar':'🇶🇦','Colômbia':'🇨🇴','Coreia do Sul':'🇰🇷','Costa do Marfim':'🇨🇮','Croácia':'🇭🇷','Curaçao':'🇨🇼','Egito':'🇪🇬','Equador':'🇪🇨','Escócia':'🏴','Espanha':'🇪🇸','Estados Unidos':'🇺🇸','França':'🇫🇷','Gana':'🇬🇭','Haiti':'🇭🇹','Holanda':'🇳🇱','Inglaterra':'🏴','Irã':'🇮🇷','Iraque':'🇮🇶','Japão':'🇯🇵','Jordânia':'🇯🇴','Marrocos':'🇲🇦','México':'🇲🇽','Nigéria':'🇳🇬','Noruega':'🇳🇴','Nova Zelândia':'🇳🇿','Panamá':'🇵🇦','Paraguai':'🇵🇾','Portugal':'🇵🇹','RD Congo':'🇨🇩','República Tcheca':'🇨🇿','Senegal':'🇸🇳','Suécia':'🇸🇪','Suíça':'🇨🇭','Tunísia':'🇹🇳','Turquia':'🇹🇷','Uruguai':'🇺🇾','Uzbequistão':'🇺🇿'
+};
+const countryCodes={
+  'África do Sul':'za','Alemanha':'de','Arábia Saudita':'sa','Argélia':'dz','Argentina':'ar','Austrália':'au','Áustria':'at','Bélgica':'be','Bósnia e Herzegovina':'ba','Brasil':'br','Cabo Verde':'cv','Camarões':'cm','Canadá':'ca','Catar':'qa','Colômbia':'co','Coreia do Sul':'kr','Costa do Marfim':'ci','Croácia':'hr','Curaçao':'cw','Egito':'eg','Equador':'ec','Escócia':'gb-sct','Espanha':'es','Estados Unidos':'us','França':'fr','Gana':'gh','Haiti':'ht','Holanda':'nl','Inglaterra':'gb-eng','Irã':'ir','Iraque':'iq','Japão':'jp','Jordânia':'jo','Marrocos':'ma','México':'mx','Nigéria':'ng','Noruega':'no','Nova Zelândia':'nz','Panamá':'pa','Paraguai':'py','Portugal':'pt','RD Congo':'cd','República Tcheca':'cz','Senegal':'sn','Suécia':'se','Suíça':'ch','Tunísia':'tn','Turquia':'tr','Uruguai':'uy','Uzbequistão':'uz'
+};
+function flagText(team){return countryFlags[String(team||'').trim()]||'❔'}
+function flagImg(team){
+  const name=String(team||'').trim();
+  const code=countryCodes[name];
+  if(!code) return '<span class="team-flag">❔</span>';
+  return `<span class="team-flag"><img class="team-flag-img" src="https://flagcdn.com/w40/${code}.png" alt="Bandeira ${esc(name)}" onerror="this.outerHTML='${flagText(name)}'"></span>`;
+}
+function championDisplay(team){return team?`<span class="champion-line">${flagImg(team)}<span>${esc(team)}</span></span>`:'<span class="muted">❔ Não definido</span>'}
+function countryOptions(selected=''){
+  return countries.map(c=>`<option value="${esc(c)}" ${c===selected?'selected':''}>${c||'Selecione'}</option>`).join('');
+}
+function esc(t){return String(t??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function setStatus(msg){document.getElementById('status').textContent=msg}
+function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function slug(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||Date.now()}
+async function loadFirebase(){setStatus('Carregando Firebase...');const doc=await BOLAO_REF.get();if(!doc.exists)throw new Error('Documento boloes/copa2026 não encontrado');const d=doc.data();data.config=d.config||data.config;data.participants=d.participants||[];data.games=d.games||[];render();setStatus('Firebase carregado ✅');}
+async function saveFirebase(){setStatus('Salvando...');data.ultimaAtualizacao=new Date().toISOString();await BOLAO_REF.set({...data,nome:'Bolão da Copa Só Resenha',versao:'admin_online_v1_6',ultimaAtualizacao:data.ultimaAtualizacao},{merge:true});setStatus('Salvo no Firebase ✅');toast('✅ Salvo no Firebase');render();}
+function applyConfig(){data.config.entryFee=Number(document.getElementById('entryFee').value||0);data.config.lateFee=Number(document.getElementById('lateFee').value||0);data.config.championPoints=Number(document.getElementById('championPoints').value||9);data.config.pix=document.getElementById('pix').value.trim();render();toast('Configuração aplicada. Clique em Salvar tudo.');}
+function countGuesses(){let n=0;data.games.forEach(g=>Object.values(g.guesses||{}).forEach(gs=>{if(gs&&gs.home!==''&&gs.away!=='')n++}));return n}
+function render(){document.getElementById('countParticipants').textContent=data.participants.length;document.getElementById('countGames').textContent=data.games.length;document.getElementById('countGuesses').textContent=countGuesses();document.getElementById('lastUpdate').textContent=data.ultimaAtualizacao?new Date(data.ultimaAtualizacao).toLocaleString('pt-BR'):'--';document.getElementById('entryFee').value=data.config.entryFee||0;document.getElementById('lateFee').value=data.config.lateFee||0;document.getElementById('championPoints').value=data.config.championPoints||9;document.getElementById('pix').value=data.config.pix||'';const gh=document.getElementById('gHome');const ga=document.getElementById('gAway');const nc=document.getElementById('newChampion');if(gh&&!gh.innerHTML)gh.innerHTML=countryOptions('');if(ga&&!ga.innerHTML)ga.innerHTML=countryOptions('');if(nc&&!nc.innerHTML)nc.innerHTML=countryOptions('');renderParticipants();renderGames();}
+function pinMessage(p){return `🏆 *Bolão da Copa Só Resenha* ⚽\n\nOlá, *${p.name}*!\n\n🔐 Seu código PIN para acessar a área de palpites é:\n\n👉 *${p.pin||''}*\n\nCom esse código você poderá registrar e atualizar seus palpites antes do bloqueio das partidas.\n\n🌐 Acesse o bolão e faça seus palpites.\n\nBoa sorte! 🍀🏆⚽`}
+async function copyPin(id){
+  const p=data.participants.find(x=>x.id===id);if(!p)return;
+  const msg=pinMessage(p);
+  try{await navigator.clipboard.writeText(msg);toast('📋 Mensagem do PIN copiada');}
+  catch(e){prompt('Copie a mensagem:',msg)}
+}
+function renderParticipants(){
+  const body=document.getElementById('participantsBody');
+  const panel=document.getElementById('participantEditPanel');
+  body.innerHTML='';
+  if(!selectedParticipantId && data.participants.length) selectedParticipantId=[...data.participants].sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR'))[0].id;
+  [...data.participants].sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR')).forEach(p=>{
+    const checked=selectedParticipantId===p.id?'checked':'';
+    const rowClass=selectedParticipantId===p.id?' class="selected-row"':'';
+    const statusClass=p.paid?'paid-status':'pending-status';
+    const statusText=p.paid?'Pago':'Pendente';
+    body.insertAdjacentHTML('beforeend',`<tr${rowClass}>
+      <td class="radio-cell"><input type="radio" name="selectedParticipant" ${checked} onchange="selectParticipant('${p.id}')"></td>
+      <td class="participant-name">${esc(p.name)}</td>
+      <td><div class="copy-pin-row"><strong>${esc(p.pin||'-')}</strong><button class="secondary copy-btn" onclick="copyPin('${p.id}')">📋 Copiar PIN</button></div></td>
+      <td class="${statusClass}">${statusText}</td>
+      <td>${money(p.paidValue||0)}</td>
+      <td>${championDisplay(p.champion||'')}</td>
+    </tr>`);
+  });
+  renderParticipantEditPanel();
+}
+function selectParticipant(id){selectedParticipantId=id;renderParticipants();}
+function editSelectedParticipant(){
+  if(!selectedParticipantId){alert('Selecione um participante.');return;}
+  startEditParticipant(selectedParticipantId);
+}
+function startEditParticipant(id){editingParticipantId=id;selectedParticipantId=id;renderParticipants();}
+function cancelParticipantEdit(){editingParticipantId=null;renderParticipants();}
+function renderParticipantEditPanel(){
+  const panel=document.getElementById('participantEditPanel');
+  if(!panel)return;
+  const p=data.participants.find(x=>x.id===editingParticipantId);
+  if(!p){panel.innerHTML='';return;}
+  panel.innerHTML=`<div class="edit-panel">
+    <h3>Editar participante — ${esc(p.name)}</h3>
+    <div class="formgrid">
+      <div class="field quarter"><label>Nome</label><input id="editPName" value="${esc(p.name)}"></div>
+      <div class="field quarter"><label>PIN</label><div class="copy-pin-row"><input id="editPPin" value="${esc(p.pin||'')}"><button class="secondary copy-btn" onclick="copyPin('${p.id}')">📋 Copiar PIN</button></div></div>
+      <div class="field quarter"><label>Status</label><select id="editPPaid"><option value="true" ${p.paid?'selected':''}>Pago</option><option value="false" ${!p.paid?'selected':''}>Pendente</option></select></div>
+      <div class="field quarter"><label>Valor pago</label><input id="editPPaidValue" type="number" min="0" value="${Number(p.paidValue||0)}"></div>
+      <div class="field quarter"><label>Campeão</label><select id="editPChampion">${countryOptions(p.champion||'')}</select></div>
+    </div>
+    <div class="actions"><button class="good" onclick="saveParticipantEdit()">Salvar participante</button><button class="secondary" onclick="cancelParticipantEdit()">Cancelar</button></div>
+  </div>`;
+}
+function saveParticipantEdit(){
+  const p=data.participants.find(x=>x.id===editingParticipantId);if(!p)return;
+  p.name=document.getElementById('editPName').value.trim()||p.name;
+  p.pin=document.getElementById('editPPin').value.trim();
+  p.paid=document.getElementById('editPPaid').value==='true';
+  p.paidValue=Number(document.getElementById('editPPaidValue').value||0);
+  p.champion=document.getElementById('editPChampion').value;
+  editingParticipantId=null;
+  render();toast('Participante atualizado. Clique em Salvar tudo.');
+}
+function updParticipant(id,field,value){const p=data.participants.find(x=>x.id===id);if(!p)return;p[field]=value;toast('Alteração local. Clique em Salvar tudo.');render();}
+function addParticipant(){const name=document.getElementById('newName').value.trim();if(!name){alert('Informe o nome.');return}const id='p_'+slug(name);if(data.participants.some(p=>p.id===id)){alert('Já existe participante com esse nome/ID.');return}const p={id,name,pin:document.getElementById('newPin').value.trim()||'1234',paid:true,paidValue:Number(document.getElementById('newPaidValue').value||data.config.entryFee||50),champion:document.getElementById('newChampion').value,joinedAt:new Date().toISOString().slice(0,10)};data.participants.push(p);data.games.forEach(g=>{if(!g.guesses)g.guesses={};g.guesses[id]={home:'',away:''};});selectedParticipantId=id;editingParticipantId=id;document.getElementById('newName').value='';document.getElementById('newPin').value='';document.getElementById('newChampion').value='';render();toast('Participante adicionado. Clique em Salvar tudo.');}
+function removeSelectedParticipant(){
+  if(!selectedParticipantId){alert('Selecione um participante.');return;}
+  removeParticipant(selectedParticipantId);
+}
+function removeParticipant(id){const p=data.participants.find(x=>x.id===id);if(!p)return;if(!confirm('Excluir participante '+p.name+'?'))return;data.participants=data.participants.filter(x=>x.id!==id);data.games.forEach(g=>{if(g.guesses)delete g.guesses[id]});if(selectedParticipantId===id)selectedParticipantId=data.participants[0]?.id||null;if(editingParticipantId===id)editingParticipantId=null;render();toast('Participante removido. Clique em Salvar tudo.');}
+function gameDateTimeValue(g){
+  const date=String(g.date||'0000-00-00');
+  const time=String(g.time||'00:00');
+  return new Date(`${date}T${time}:00-03:00`).getTime()||0;
+}
+function isFinished(g){return g.homeScore!==''&&g.awayScore!=='';}
+function renderGames(){
+  const box=document.getElementById('gamesAdmin');
+  box.innerHTML='';
+  const pending=[...data.games].filter(g=>!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
+  const finished=[...data.games].filter(g=>isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));
+  renderGameGroup(box,'⚽ Jogos pendentes',pending,false,true);
+  renderFinishedGroup(box,finished);
+}
+function renderGameGroup(box,title,games,compact=false,editable=true){
+  box.insertAdjacentHTML('beforeend',`<h3>${title} <span class="pill">${games.length}</span></h3>`);
+  if(!games.length){box.insertAdjacentHTML('beforeend','<div class="box muted">Nenhum jogo nesta seção.</div>');return;}
+  games.forEach(g=>renderGameCard(box,g,compact,editable));
+}
+function renderFinishedGroup(box,games){
+  box.insertAdjacentHTML('beforeend',`<h3 style="cursor:pointer" onclick="toggleFinished()">${showAllFinished?'▼':'▶'} 🏁 Jogos concluídos <span class="pill">${games.length}</span></h3>`);
+  const listClass=showAllFinished?'finished-list':'finished-list collapsed';
+  const visible=showAllFinished?games:games.slice(0,10);
+  box.insertAdjacentHTML('beforeend',`<div class="${listClass}" id="finishedList"></div>`);
+  const list=document.getElementById('finishedList');
+  if(!showAllFinished){
+    list.insertAdjacentHTML('beforeend',`<div class="box muted">Mostrando prévia recolhida. Clique em <strong>Jogos concluídos</strong> para expandir.</div>`);
+    return;
+  }
+  if(!games.length){list.insertAdjacentHTML('beforeend','<div class="box muted">Nenhum jogo concluído.</div>');return;}
+  visible.forEach(g=>renderFinishedCard(list,g));
+  if(games.length>10){
+    list.insertAdjacentHTML('beforeend',`<div class="actions"><button class="secondary" onclick="showAllFinishedRows()">Ver todos os concluídos</button></div>`);
+  }
+}
+function toggleFinished(){showAllFinished=!showAllFinished;renderGames();}
+function showAllFinishedRows(){showAllFinished=true;const box=document.getElementById('gamesAdmin');box.innerHTML='';const pending=[...data.games].filter(g=>!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));const finished=[...data.games].filter(g=>isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));renderGameGroup(box,'⚽ Jogos pendentes',pending,false,true);box.insertAdjacentHTML('beforeend',`<h3>▼ 🏁 Jogos concluídos <span class="pill">${finished.length}</span></h3>`);finished.forEach(g=>renderFinishedCard(box,g));}
+function renderFinishedCard(box,g){
+  const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
+  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>${esc(homeScore)} x ${esc(awayScore)}</strong></span></div><button class="secondary" onclick="editFinished('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
+}
+function editFinished(id){
+  const holder=document.getElementById('edit_'+id);if(!holder)return;
+  const g=data.games.find(x=>x.id===id);if(!g)return;
+  holder.innerHTML=renderGameEditor(g);
+}
+function renderGameCard(box,g,compact=false,editable=true){
+  box.insertAdjacentHTML('beforeend',`<div class="box">${renderGameEditor(g)}</div>`);
+}
+function renderGameEditor(g){
+  const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
+  return `<div class="formgrid"><div class="field quarter"><label>Rodada</label><input value="${esc(g.round||'')}" onchange="updGame('${g.id}','round',this.value)"></div><div class="field quarter"><label>Data</label><input type="date" value="${esc(g.date||'')}" onchange="updGame('${g.id}','date',this.value)"></div><div class="field quarter"><label>Hora</label><input type="time" value="${esc(g.time||'')}" onchange="updGame('${g.id}','time',this.value)"></div><div class="field quarter"><label>Resultado</label><span class="pill">${homeScore!==''&&awayScore!==''?esc(homeScore)+' x '+esc(awayScore):'Pendente'}</span></div><div class="field quarter"><label>Seleção casa</label><select onchange="updGame('${g.id}','home',this.value)">${countryOptions(g.home||'')}</select></div><div class="field quarter"><label>Seleção fora</label><select onchange="updGame('${g.id}','away',this.value)">${countryOptions(g.away||'')}</select></div><div class="field quarter"><label>Placar casa</label><input class="score-input" type="number" min="0" step="1" value="${esc(homeScore)}" onchange="updGame('${g.id}','homeScore',this.value)"></div><div class="field quarter"><label>Placar fora</label><input class="score-input" type="number" min="0" step="1" value="${esc(awayScore)}" onchange="updGame('${g.id}','awayScore',this.value)"></div></div><div class="actions"><button class="danger" onclick="removeGame('${g.id}')">Excluir jogo</button></div><details><summary>Ver palpites</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Participante</th><th>Palpite</th></tr></thead><tbody>${data.participants.map(p=>{const gs=g.guesses?.[p.id]||{home:'',away:''};return `<tr><td>${esc(p.name)}</td><td>${gs.home!==''&&gs.away!==''?esc(gs.home)+' x '+esc(gs.away):'-'}</td></tr>`}).join('')}</tbody></table></div></details>`;
+}
+function fmt(d){if(!d)return'-';const parts=String(d).split('-');return parts.length===3?`${parts[2]}/${parts[1]}/${parts[0]}`:esc(d)}
+function updGame(id,field,value){const g=data.games.find(x=>x.id===id);if(!g)return;g[field]=value;render();toast('Alteração local. Clique em Salvar tudo.');}
+function addGame(){const round=document.getElementById('gRound').value.trim()||'Nova rodada';const date=document.getElementById('gDate').value;const time=document.getElementById('gTime').value;const home=document.getElementById('gHome').value.trim();const away=document.getElementById('gAway').value.trim();if(!date||!time||!home||!away){alert('Preencha data, hora e times.');return}const id='g_'+date.replaceAll('-','')+'_'+time.replace(':','')+'_'+slug(home)+'_'+slug(away);const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});data.games.push({id,round,date,time,home,away,homeScore:'',awayScore:'',guesses});['gRound','gDate','gTime'].forEach(id=>document.getElementById(id).value='');document.getElementById('gHome').value='';document.getElementById('gAway').value='';render();toast('Jogo adicionado. Clique em Salvar tudo.');}
+function removeGame(id){const g=data.games.find(x=>x.id===id);if(!g)return;if(!confirm(`Excluir jogo ${g.home} x ${g.away}?`))return;data.games=data.games.filter(x=>x.id!==id);render();toast('Jogo removido. Clique em Salvar tudo.');}
+loadFirebase().catch(e=>{console.error(e);setStatus('Erro ao carregar ❌');alert('Erro ao carregar Firebase: '+e.message)});
+</script>
+</body>
+</html>
