@@ -42,7 +42,7 @@
       <div class="card span12"><h2>⚽ Jogos e Resultados</h2><div class="formgrid"><div class="field third"><label>Rodada</label><input id="gRound" placeholder="Rodada 20/06"></div><div class="field quarter"><label>Data</label><input id="gDate" type="date"></div><div class="field quarter"><label>Hora</label><input id="gTime" type="time"></div><div class="field third"><label>Seleção casa</label><select id="gHome" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gHomePreview">❔ Selecione</div></div><div class="field third"><label>Seleção fora</label><select id="gAway" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gAwayPreview">❔ Selecione</div></div></div><div class="actions"><button onclick="addGame()">Adicionar jogo</button></div><div id="gamesAdmin"></div></div>
     </section>
   </main>
-  <div class="footer">Admin Online • v2.0 Mobile • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
+  <div class="footer">Admin Online • v2.1 Mobile • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
   </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -54,6 +54,7 @@ firebase.initializeApp(firebaseConfig);const db=firebase.firestore();const auth=
 const ADMIN_EMAILS=['wellingtonsbc@gmail.com'];
 let data={config:{entryFee:50,lateFee:80,pix:'',championPoints:9},participants:[],games:[]};
 let showAllFinished=false;
+let showAllPending=true;
 let selectedParticipantId=null;
 let editingParticipantId=null;
 const countries=['','África do Sul','Alemanha','Arábia Saudita','Argélia','Argentina','Austrália','Áustria','Bélgica','Bósnia e Herzegovina','Brasil','Cabo Verde','Camarões','Canadá','Catar','Colômbia','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Holanda','Inglaterra','Irã','Iraque','Japão','Jordânia','Marrocos','México','Nigéria','Noruega','Nova Zelândia','Panamá','Paraguai','Portugal','RD Congo','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão'];
@@ -215,10 +216,12 @@ function renderGames(){
   renderFinishedGroup(box,finished);
 }
 function renderPendingGroup(box,games){
-  box.insertAdjacentHTML('beforeend',`<h3>▶ ⚽ Jogos pendentes <span class="pill">${games.length}</span></h3>`);
+  box.insertAdjacentHTML('beforeend',`<h3 style="cursor:pointer" onclick="togglePending()">${showAllPending?'▼':'▶'} ⚽ Jogos pendentes <span class="pill">${games.length}</span></h3>`);
   if(!games.length){box.insertAdjacentHTML('beforeend','<div class="box muted">Nenhum jogo pendente.</div>');return;}
+  if(!showAllPending){box.insertAdjacentHTML('beforeend',`<div class="box muted">Jogos pendentes recolhidos. Clique em <strong>Jogos pendentes</strong> para expandir.</div>`);return;}
   games.forEach(g=>renderPendingCard(box,g));
 }
+function togglePending(){showAllPending=!showAllPending;renderGames();}
 function renderPendingCard(box,g){
   box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>Pendente</strong></span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
 }
