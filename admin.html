@@ -42,7 +42,7 @@
       <div class="card span12"><h2>⚽ Jogos e Resultados</h2><div class="formgrid"><div class="field third"><label>Rodada</label><input id="gRound" placeholder="Rodada 20/06"></div><div class="field quarter"><label>Data</label><input id="gDate" type="date"></div><div class="field quarter"><label>Hora</label><input id="gTime" type="time"></div><div class="field third"><label>Seleção casa</label><select id="gHome" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gHomePreview">❔ Selecione</div></div><div class="field third"><label>Seleção fora</label><select id="gAway" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gAwayPreview">❔ Selecione</div></div></div><div class="actions"><button onclick="addGame()">Adicionar jogo</button></div><div id="gamesAdmin"></div></div>
     </section>
   </main>
-  <div class="footer">Admin Online • v1.9 Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
+  <div class="footer">Admin Online • v2.0 Mobile • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
   </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -211,13 +211,21 @@ function renderGames(){
   box.innerHTML='';
   const pending=[...data.games].filter(g=>!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
   const finished=[...data.games].filter(g=>isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));
-  renderGameGroup(box,'⚽ Jogos pendentes',pending,false,true);
+  renderPendingGroup(box,pending);
   renderFinishedGroup(box,finished);
 }
-function renderGameGroup(box,title,games,compact=false,editable=true){
-  box.insertAdjacentHTML('beforeend',`<h3>${title} <span class="pill">${games.length}</span></h3>`);
-  if(!games.length){box.insertAdjacentHTML('beforeend','<div class="box muted">Nenhum jogo nesta seção.</div>');return;}
-  games.forEach(g=>renderGameCard(box,g,compact,editable));
+function renderPendingGroup(box,games){
+  box.insertAdjacentHTML('beforeend',`<h3>▶ ⚽ Jogos pendentes <span class="pill">${games.length}</span></h3>`);
+  if(!games.length){box.insertAdjacentHTML('beforeend','<div class="box muted">Nenhum jogo pendente.</div>');return;}
+  games.forEach(g=>renderPendingCard(box,g));
+}
+function renderPendingCard(box,g){
+  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>Pendente</strong></span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
+}
+function editPending(id){
+  const holder=document.getElementById('edit_'+id);if(!holder)return;
+  const g=data.games.find(x=>x.id===id);if(!g)return;
+  holder.innerHTML=holder.innerHTML.trim()?'' : renderGameEditor(g);
 }
 function renderFinishedGroup(box,games){
   box.insertAdjacentHTML('beforeend',`<h3 style="cursor:pointer" onclick="toggleFinished()">${showAllFinished?'▼':'▶'} 🏁 Jogos concluídos <span class="pill">${games.length}</span></h3>`);
@@ -236,7 +244,7 @@ function renderFinishedGroup(box,games){
   }
 }
 function toggleFinished(){showAllFinished=!showAllFinished;renderGames();}
-function showAllFinishedRows(){showAllFinished=true;const box=document.getElementById('gamesAdmin');box.innerHTML='';const pending=[...data.games].filter(g=>!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));const finished=[...data.games].filter(g=>isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));renderGameGroup(box,'⚽ Jogos pendentes',pending,false,true);box.insertAdjacentHTML('beforeend',`<h3>▼ 🏁 Jogos concluídos <span class="pill">${finished.length}</span></h3>`);finished.forEach(g=>renderFinishedCard(box,g));}
+function showAllFinishedRows(){showAllFinished=true;const box=document.getElementById('gamesAdmin');box.innerHTML='';const pending=[...data.games].filter(g=>!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));const finished=[...data.games].filter(g=>isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));renderPendingGroup(box,pending);box.insertAdjacentHTML('beforeend',`<h3>▼ 🏁 Jogos concluídos <span class="pill">${finished.length}</span></h3>`);finished.forEach(g=>renderFinishedCard(box,g));}
 function renderFinishedCard(box,g){
   const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
   box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>${esc(homeScore)} x ${esc(awayScore)}</strong></span></div><button class="secondary" onclick="editFinished('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
