@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Online</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.1</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -25,6 +25,26 @@
     body.palpiteiro-mode .palpiteiro-panel{display:block;grid-column:span 12;margin-top:0}
     body.palpiteiro-mode .grid{display:block}
     @media(max-width:720px){body.palpiteiro-mode main.wrap{padding:10px}}
+
+  
+    .game-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:18px 0 10px}
+    .game-section-head h3{margin:0}
+    .compact-match{padding:12px}
+    .compact-match .versus{grid-template-columns:1fr auto 1fr}
+    .compact-match .team{gap:5px}
+    .compact-match .team .flag{width:28px;height:20px}
+    .compact-match .score{font-size:18px}
+    .next-match{border-color:rgba(255,209,102,.55);box-shadow:0 0 0 1px rgba(255,209,102,.16),var(--shadow)}
+    .section-empty{background:rgba(0,0,0,.15);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+
+  
+    .pending-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .pending-row{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:rgba(0,0,0,.15);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--text);text-align:left}
+    .pending-row:hover{background:rgba(255,255,255,.08)}
+    .pending-row-main{font-weight:900}
+    .pending-row-meta{color:var(--muted);font-size:13px;margin-top:2px}
+    .pending-row .flag.smallflag{margin-right:4px}
+    .pending-chevron{font-size:18px;color:var(--gold);font-weight:900}
 
   </style>
 </head>
@@ -90,17 +110,17 @@
       <button class="secondary" onclick="clearPublicFilters()">Limpar filtros</button>
     </div>
     <p class="small muted" id="publicFilterInfo" style="margin:10px 0 0"></p>
-    <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Expandir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Recolher concluídos</button></div><div id="gamesList"></div></div>
+    <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v14 • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v16 • Release 1.1.1 • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyB7ltzdqV_nrOBVDXgMmCz6r7j6BzPFHvE",authDomain:"bolao-copa-so-resenha.firebaseapp.com",projectId:"bolao-copa-so-resenha",storageBucket:"bolao-copa-so-resenha.firebasestorage.app",messagingSenderId:"583874363392",appId:"1:583874363392:web:1781437483711ddd3c98e5",measurementId:"G-D56C3MV1JT"};
 firebase.initializeApp(firebaseConfig); const db=firebase.firestore(); const BOLAO_REF=db.collection('boloes').doc('copa2026');
-let data={config:{},participants:[],games:[]}, currentParticipant=null, filter='open', myTeamQuery='', publicFilter='all', publicTeamQuery='', rankingExpanded=false, expandedGames={};
+let data={config:{},participants:[],games:[]}, currentParticipant=null, filter='open', myTeamQuery='', publicFilter='all', publicTeamQuery='', rankingExpanded=false, expandedGames={}, publicSections={pendingList:true,finished:false};
 const countries={"Brasil":{code:"br",name:"Brasil"},"Haiti":{code:"ht",name:"Haiti"},"Estados Unidos":{code:"us",name:"Estados Unidos"},"Austrália":{code:"au",name:"Austrália"},"Escócia":{code:"gb-sct",name:"Escócia"},"Marrocos":{code:"ma",name:"Marrocos"},"Turquia":{code:"tr",name:"Turquia"},"Paraguai":{code:"py",name:"Paraguai"},"Argentina":{code:"ar",name:"Argentina"},"Espanha":{code:"es",name:"Espanha"},"França":{code:"fr",name:"França"},"Alemanha":{code:"de",name:"Alemanha"},"Portugal":{code:"pt",name:"Portugal"},"Inglaterra":{code:"gb-eng",name:"Inglaterra"},"Uruguai":{code:"uy",name:"Uruguai"},"Holanda":{code:"nl",name:"Holanda"},"Países Baixos":{code:"nl",name:"Países Baixos"},"Bélgica":{code:"be",name:"Bélgica"},"Croácia":{code:"hr",name:"Croácia"},"Japão":{code:"jp",name:"Japão"},"Coreia do Sul":{code:"kr",name:"Coreia do Sul"},"México":{code:"mx",name:"México"},"Canadá":{code:"ca",name:"Canadá"},"Catar":{code:"qa",name:"Catar"},"Arábia Saudita":{code:"sa",name:"Arábia Saudita"},"Senegal":{code:"sn",name:"Senegal"},"Gana":{code:"gh",name:"Gana"},"Suíça":{code:"ch",name:"Suíça"},"República Tcheca":{code:"cz",name:"República Tcheca"},"África do Sul":{code:"za",name:"África do Sul"},"Bósnia e Herzegovina":{code:"ba",name:"Bósnia e Herzegovina"},"Curaçao":{code:"cw",name:"Curaçao"},"Costa do Marfim":{code:"ci",name:"Costa do Marfim"},"Equador":{code:"ec",name:"Equador"},"Suécia":{code:"se",name:"Suécia"},"Tunísia":{code:"tn",name:"Tunísia"},"Egito":{code:"eg",name:"Egito"},"Irã":{code:"ir",name:"Irã"},"Nova Zelândia":{code:"nz",name:"Nova Zelândia"},"Cabo Verde":{code:"cv",name:"Cabo Verde"},"Iraque":{code:"iq",name:"Iraque"},"Noruega":{code:"no",name:"Noruega"},"Argélia":{code:"dz",name:"Argélia"},"Áustria":{code:"at",name:"Áustria"},"Jordânia":{code:"jo",name:"Jordânia"},"RD Congo":{code:"cd",name:"RD Congo"},"Uzbequistão":{code:"uz",name:"Uzbequistão"},"Colômbia":{code:"co",name:"Colômbia"},"Panamá":{code:"pa",name:"Panamá"}};
 function log(msg){document.getElementById('log').textContent=msg} function esc(t){return String(t??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')} function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} function fmt(d){if(!d)return'-';const[y,m,day]=String(d).split('-');return `${day}/${m}/${y}`} function flagImg(team,small=false){const c=countries[String(team||'').trim()];if(!c)return `<span class="flag ${small?'smallflag':''}" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span>`;return `<img class="flag ${small?'smallflag':''}" src="https://flagcdn.com/w80/${c.code}.png" alt="Bandeira ${esc(c.name)}" onerror="this.outerHTML='🏳️'">`}
 function gameTime(g){const rawDate=String(g.date||'').trim(), rawTime=String(g.time||'00:00').trim();let y,m,d;if(/^\d{4}-\d{2}-\d{2}$/.test(rawDate)){[y,m,d]=rawDate.split('-').map(Number)}else if(/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)){[d,m,y]=rawDate.split('/').map(Number)}else return Number.MAX_SAFE_INTEGER;const[hh,mm]=rawTime.split(':').map(Number);return new Date(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00-03:00`).getTime()}
@@ -126,9 +146,175 @@ async function loadBolao(){try{log('Sincronizando horário do Firebase...');awai
 function render(){refreshFilterButtons();document.getElementById('entryFeeLabel').textContent=money(data.config.entryFee);document.getElementById('lateFeeLabel').textContent=money(data.config.lateFee);document.getElementById('pixKey').value=data.config.pix||'';const paid=data.participants.filter(p=>p.paid);const prize=paid.reduce((s,p)=>s+Number(p.paidValue||0),0);document.getElementById('totalPrize').textContent=money(prize);document.getElementById('paidCount').textContent=participantesPagosText(paid.length);document.getElementById('heroParticipants').textContent=data.participants.length;document.getElementById('heroPrize').textContent=money(prize);document.getElementById('heroUpdated').textContent=new Date(nowMs()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});renderPodium();renderRanking();renderGames()}
 function renderPodium(){const box=document.getElementById('podium');box.innerHTML='';const r=ranking().slice(0,3), medals=['🥇','🥈','🥉'];if(!r.length){box.innerHTML='<p class="muted">Nenhum participante cadastrado.</p>';return}r.forEach((p,i)=>box.insertAdjacentHTML('beforeend',`<div class="podium-card"><div class="podium-medal">${medals[i]}</div><div class="podium-name">${esc(p.name)}</div><div class="podium-points">${pontosText(p.points)}</div><div class="small muted">${exatosText(p.exacts)}</div></div>`))}
 function renderRanking(){const body=document.getElementById('rankingBody');body.innerHTML='';const all=ranking(), visible=rankingExpanded?all:all.slice(0,5);const btn=document.getElementById('rankingToggleBtn');btn.style.display=all.length>5?'inline-block':'none';btn.textContent=rankingExpanded?'Mostrar top 5':'Ver ranking completo';visible.forEach((p,i)=>body.insertAdjacentHTML('beforeend',`<tr><td><span class="rank">${i+1}</span></td><td><strong>${esc(p.name)}</strong></td><td><strong>${p.points}</strong></td><td>${p.exacts}</td><td>${flagImg(p.champion,true)} ${esc(p.champion||'-')}</td><td class="${p.paid?'paid':'pending'}">${p.paid?'Pago':'Pendente'}</td></tr>`));if(!rankingExpanded&&all.length>5)body.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="muted small">Mostrando top 5 de ${all.length} ${plural(all.length,'participante','participantes')}. Clique em "Ver ranking completo" para expandir.</td></tr>`)} function toggleRanking(){rankingExpanded=!rankingExpanded;renderRanking()}
-function renderGames(){const list=document.getElementById('gamesList');list.innerHTML='';const filteredAll=data.games.filter(matchPublicFilters);document.getElementById('publicGamesCount').textContent=`(${filteredAll.length} de ${jogosCadastradosText(data.games.length)})`;const info=document.getElementById('publicFilterInfo');if(info){const teamText=publicTeamQuery?' • Seleção: <strong>'+esc(publicTeamQuery)+'</strong>':'';info.innerHTML='Filtro ativo: <strong>'+publicFilterLabel()+'</strong>'+teamText+(publicTeamQuery?' <span class="muted">(busca por seleção em todos os jogos)</span>':'');}const pending=filteredAll.filter(g=>!(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(a)-gameTime(b));const finished=filteredAll.filter(g=>(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(b)-gameTime(a));if(!filteredAll.length){list.innerHTML='<div class="match muted small">Nenhum jogo encontrado para os filtros selecionados.</div>';return}renderPublicGameGroup(list,'🔥 Jogos pendentes',pending,true);renderPublicGameGroup(list,'✅ Jogos concluídos',finished,false)}
-function renderPublicGameGroup(list,title,games,openDefault){list.insertAdjacentHTML('beforeend',`<h3>${title} <span class="games-count">(${games.length})</span></h3>`);if(!games.length){list.insertAdjacentHTML('beforeend',`<div class="match muted small">Nenhum jogo nesta seção.</div>`);return}games.forEach(g=>{const finished=(g.homeScore!==''&&g.awayScore!=='');const started=isStarted(g);const score=finished?`${g.homeScore} x ${g.awayScore}`:'VS';const expanded=expandedGames[g.id]!==undefined?expandedGames[g.id]:openDefault;const btnText=expanded?'Recolher detalhes':'Ver palpites/detalhes';const details=expanded?`<div class="match-details">${!started?`<span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>`:''}<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>${data.participants.map(p=>{const gs=g.guesses?.[p.id];const palpite=!started?`<span class="guess-hidden">🔒 Palpite oculto até o início da partida</span>`:(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined?`${gs.home} x ${gs.away}`:'-');return`<tr><td>${esc(p.name)}</td><td>${palpite}</td><td>${started?gamePoints(g,p.id):0}</td></tr>`}).join('')}</tbody></table></div></div>`:'';list.insertAdjacentHTML('beforeend',`<div class="match"><div class="mtop"><span><span class="tag">${esc(g.round||'Rodada')}</span> ${fmt(g.date)} • ${esc(g.time)}</span><span>${finished?'Resultado lançado':'Aguardando resultado'}</span></div><div class="versus"><div class="team">${flagImg(g.home)}<span>${esc(g.home)}</span></div><div class="score">${score}</div><div class="team">${flagImg(g.away)}<span>${esc(g.away)}</span></div></div><div class="actions"><button class="secondary" onclick="toggleGameDetails('${g.id}')">${btnText}</button></div>${details}</div>`)})}
-function toggleGameDetails(id){const g=data.games.find(x=>x.id===id);const finished=g&&g.homeScore!==''&&g.awayScore!=='';const current=expandedGames[id]!==undefined?expandedGames[id]:!finished;expandedGames[id]=!current;renderGames()}function expandPublicGames(type){data.games.forEach(g=>{const fin=g.homeScore!==''&&g.awayScore!=='';if(type==='all'||(type==='pending'&&!fin)||(type==='finished'&&fin))expandedGames[g.id]=true});renderGames()}function collapsePublicGames(type){data.games.forEach(g=>{const fin=g.homeScore!==''&&g.awayScore!=='';if(type==='all'||(type==='pending'&&!fin)||(type==='finished'&&fin))expandedGames[g.id]=false});renderGames()}
+function renderGames(){
+  const list=document.getElementById('gamesList');
+  list.innerHTML='';
+  const filteredAll=data.games.filter(matchPublicFilters);
+  document.getElementById('publicGamesCount').textContent=`(${filteredAll.length} de ${jogosCadastradosText(data.games.length)})`;
+
+  const info=document.getElementById('publicFilterInfo');
+  if(info){
+    const teamText=publicTeamQuery?' • Seleção: <strong>'+esc(publicTeamQuery)+'</strong>':'';
+    info.innerHTML='Filtro ativo: <strong>'+publicFilterLabel()+'</strong>'+teamText+(publicTeamQuery?' <span class="muted">(busca por seleção em todos os jogos)</span>':'');
+  }
+
+  const pending=filteredAll.filter(g=>!(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(a)-gameTime(b));
+  const finished=filteredAll.filter(g=>(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(b)-gameTime(a));
+
+  if(!filteredAll.length){
+    list.innerHTML='<div class="match muted small">Nenhum jogo encontrado para os filtros selecionados.</div>';
+    return;
+  }
+
+  renderNextPendingGame(list,pending);
+  renderPendingList(list,pending.slice(1));
+  renderFinishedSection(list,finished);
+}
+
+function sectionButton(key, openLabel, closeLabel){
+  const opened=!!publicSections[key];
+  return `<button class="secondary" onclick="togglePublicSection('${key}')">${opened?closeLabel:openLabel}</button>`;
+}
+
+function renderNextPendingGame(list,pending){
+  list.insertAdjacentHTML('beforeend',`<div class="game-section-head"><h3>🔥 Próximo jogo</h3></div>`);
+  if(!pending.length){
+    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum jogo pendente encontrado para este filtro.</div>`);
+    return;
+  }
+  renderPublicGameCard(list,pending[0],true,true);
+}
+
+function renderPendingList(list,games){
+  list.insertAdjacentHTML('beforeend',`
+    <div class="game-section-head">
+      <h3>📋 Próximos jogos <span class="games-count">(${games.length})</span></h3>
+      ${sectionButton('pendingList','Mostrar próximos jogos','Ocultar próximos jogos')}
+    </div>
+  `);
+
+  if(!publicSections.pendingList) return;
+
+  if(!games.length){
+    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum outro jogo pendente encontrado.</div>`);
+    return;
+  }
+
+  list.insertAdjacentHTML('beforeend',`<div class="pending-list" id="pendingListBox"></div>`);
+  const box=document.getElementById('pendingListBox');
+
+  games.forEach(g=>{
+    const expanded=!!expandedGames[g.id];
+    if(expanded){
+      renderPublicGameCard(box,g,false,false);
+      return;
+    }
+
+    box.insertAdjacentHTML('beforeend',`
+      <button class="pending-row" onclick="toggleGameDetails('${g.id}')">
+        <span class="pending-chevron">▶</span>
+        <span>
+          <span class="pending-row-main">${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</span>
+          <span class="pending-row-meta">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Aguardando resultado</span>
+        </span>
+        <span class="tag">Detalhes</span>
+      </button>
+    `);
+  });
+}
+
+function renderFinishedSection(list,games){
+  list.insertAdjacentHTML('beforeend',`
+    <div class="game-section-head">
+      <h3>✅ Jogos concluídos <span class="games-count">(${games.length})</span></h3>
+      ${sectionButton('finished','Mostrar concluídos','Ocultar concluídos')}
+    </div>
+  `);
+
+  if(!publicSections.finished) return;
+
+  if(!games.length){
+    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum jogo concluído encontrado para este filtro.</div>`);
+    return;
+  }
+
+  games.forEach(g=>renderPublicGameCard(list,g,false,false));
+}
+
+function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
+  const finished=(g.homeScore!==''&&g.awayScore!=='');
+  const started=isStarted(g);
+  const score=finished?`${g.homeScore} x ${g.awayScore}`:'VS';
+  const expanded=forceExpanded ? true : (expandedGames[g.id]!==undefined ? expandedGames[g.id] : false);
+  const btnText=expanded?'Recolher detalhes':'Ver palpites/detalhes';
+  const cardClass=`match ${isNext?'next-match':''} ${expanded?'':'compact-match'}`;
+
+  const details=expanded?`<div class="match-details">
+    ${!started?`<span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>`:''}
+    <div style="overflow-x:auto;margin-top:12px">
+      <table>
+        <thead><tr><th>Participante</th><th>Palpite</th><th>Pontos</th></tr></thead>
+        <tbody>
+          ${data.participants.map(p=>{
+            const gs=g.guesses?.[p.id];
+            const palpite=!started?`<span class="guess-hidden">🔒 Palpite oculto até o início da partida</span>`:(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined?`${gs.home} x ${gs.away}`:'-');
+            return`<tr><td>${esc(p.name)}</td><td>${palpite}</td><td>${started?gamePoints(g,p.id):0}</td></tr>`
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`:'';
+
+  list.insertAdjacentHTML('beforeend',`
+    <div class="${cardClass}">
+      <div class="mtop">
+        <span><span class="tag">${esc(g.round||'Rodada')}</span> ${fmt(g.date)} • ${esc(g.time)}</span>
+        <span>${finished?'Resultado lançado':(isNext?'Próximo jogo':'Aguardando resultado')}</span>
+      </div>
+      <div class="versus">
+        <div class="team">${flagImg(g.home)}<span>${esc(g.home)}</span></div>
+        <div class="score">${score}</div>
+        <div class="team">${flagImg(g.away)}<span>${esc(g.away)}</span></div>
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="toggleGameDetails('${g.id}')">${btnText}</button>
+      </div>
+      ${details}
+    </div>
+  `);
+}
+
+function togglePublicSection(key){
+  publicSections[key]=!publicSections[key];
+  renderGames();
+}
+function toggleGameDetails(id){
+  const current=expandedGames[id]!==undefined?expandedGames[id]:false;
+  expandedGames[id]=!current;
+  renderGames();
+}
+
+function expandPublicGames(type){
+  if(type==='all'){publicSections.pendingList=true;publicSections.finished=true}
+  if(type==='pending'){publicSections.pendingList=true}
+  if(type==='finished'){publicSections.finished=true}
+  data.games.forEach(g=>{
+    const fin=g.homeScore!==''&&g.awayScore!=='';
+    if(type==='all'||(type==='pending'&&!fin)||(type==='finished'&&fin))expandedGames[g.id]=true
+  });
+  renderGames()
+}
+
+function collapsePublicGames(type){
+  if(type==='all'){publicSections.pendingList=false;publicSections.finished=false}
+  if(type==='pending'){publicSections.pendingList=false}
+  if(type==='finished'){publicSections.finished=false}
+  data.games.forEach(g=>{
+    const fin=g.homeScore!==''&&g.awayScore!=='';
+    if(type==='all'||(type==='pending'&&!fin)||(type==='finished'&&fin))expandedGames[g.id]=false
+  });
+  renderGames()
+}
 function fillParticipants(){const sel=document.getElementById('participantSelect');sel.innerHTML='';data.participants.filter(p=>p.active!==false).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR',{sensitivity:'base'})).forEach(p=>sel.insertAdjacentHTML('beforeend',`<option value="${esc(p.id)}">${esc(p.name)}</option>`))}
 function openPalpiteiros(){document.body.classList.add('palpiteiro-mode');document.getElementById('palpiteirosPanel').classList.remove('hide');document.getElementById('palpiteirosPanel').scrollIntoView({behavior:'smooth',block:'start'})}function closePalpiteiros(){document.body.classList.remove('palpiteiro-mode');document.getElementById('palpiteirosPanel').classList.add('hide');window.scrollTo({top:0,behavior:'smooth'})}
 function login(){const id=document.getElementById('participantSelect').value;const pin=document.getElementById('pinInput').value.trim();const p=data.participants.find(x=>x.id===id);if(!p){document.getElementById('loginStatus').textContent='Participante não encontrado.';return}if(String(p.pin||'')!==pin){document.getElementById('loginStatus').textContent='PIN inválido.';return}currentParticipant=p;document.getElementById('loginCard').classList.add('hide');document.getElementById('appCard').classList.remove('hide');document.getElementById('helloTitle').textContent=`⚽ Meus palpites — ${p.name}`;refreshFilterButtons();renderMyGames()}function logout(){currentParticipant=null;document.getElementById('pinInput').value='';document.getElementById('loginCard').classList.remove('hide');document.getElementById('appCard').classList.add('hide')}function setFilter(f){filter=f;refreshFilterButtons();renderMyGames()}
