@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Release 1.1.1</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.2 Live Fix</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -45,6 +45,12 @@
     .pending-row-meta{color:var(--muted);font-size:13px;margin-top:2px}
     .pending-row .flag.smallflag{margin-right:4px}
     .pending-chevron{font-size:18px;color:var(--gold);font-weight:900}
+
+
+    .live-match{border-color:rgba(255,107,107,.65);box-shadow:0 0 0 1px rgba(255,107,107,.18),var(--shadow)}
+    .live-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(255,107,107,.18);border:1px solid rgba(255,107,107,.45);color:#ffd0d0;font-size:12px;font-weight:900}
+    .final-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(46,229,157,.14);border:1px solid rgba(46,229,157,.35);color:#caffea;font-size:12px;font-weight:900}
+    .scheduled-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(72,181,255,.14);border:1px solid rgba(72,181,255,.35);color:#d7efff;font-size:12px;font-weight:900}
 
   </style>
 </head>
@@ -113,7 +119,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v16 • Release 1.1.1 • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v19 • Live Fix Próximo • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -126,7 +132,23 @@ function log(msg){document.getElementById('log').textContent=msg} function esc(t
 function gameTime(g){const rawDate=String(g.date||'').trim(), rawTime=String(g.time||'00:00').trim();let y,m,d;if(/^\d{4}-\d{2}-\d{2}$/.test(rawDate)){[y,m,d]=rawDate.split('-').map(Number)}else if(/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)){[d,m,y]=rawDate.split('/').map(Number)}else return Number.MAX_SAFE_INTEGER;const[hh,mm]=rawTime.split(':').map(Number);return new Date(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00-03:00`).getTime()}
 function nowMs(){return Date.now()+serverTimeOffsetMs}
 async function syncServerTime(){try{const ref=db.collection('system').doc('serverTime');await ref.set({ts:firebase.firestore.FieldValue.serverTimestamp(),clientAt:Date.now()},{merge:true});const snap=await ref.get();const ts=snap.data()?.ts;if(ts&&typeof ts.toMillis==='function'){serverTimeOffsetMs=ts.toMillis()-Date.now();serverTimeReady=true;return true}}catch(e){console.warn('Falha ao sincronizar horário do Firebase',e)}serverTimeReady=false;return false}
-function isStarted(g){return nowMs()>=gameTime(g)} function isLocked(g){return nowMs()>=(gameTime(g)-15*60*1000)} function getSortedGames(dir='asc'){return [...data.games].sort((a,b)=>dir==='desc'?gameTime(b)-gameTime(a):gameTime(a)-gameTime(b))}
+function isStarted(g){return nowMs()>=gameTime(g)}
+function isLocked(g){return nowMs()>=(gameTime(g)-15*60*1000)}
+function getSortedGames(dir='asc'){return [...data.games].sort((a,b)=>dir==='desc'?gameTime(b)-gameTime(a):gameTime(a)-gameTime(b))}
+function hasResultScore(g){return g.homeScore!==''&&g.awayScore!==''&&g.homeScore!==undefined&&g.awayScore!==undefined}
+function espnState(g){return String(g.espnState||'').toLowerCase()}
+function espnStatus(g){return String(g.espnStatus||'').toUpperCase()}
+function isLiveGame(g){return espnState(g)==='in' || espnStatus(g).includes('IN_PROGRESS')}
+function isFinalGame(g){return !isLiveGame(g) && (g.espnCompleted===true || espnState(g)==='post' || espnStatus(g).includes('FULL_TIME') || espnStatus(g).includes('FINAL') || hasResultScore(g))}
+function isUpcomingGame(g){return !isLiveGame(g)&&!isFinalGame(g)&&gameTime(g)>=nowMs()}
+function isStalePendingGame(g){return !isLiveGame(g)&&!isFinalGame(g)&&gameTime(g)<nowMs()}
+function gameStatusLabel(g,isNext=false){
+  if(isLiveGame(g)) return '<span class="live-badge">🔴 Ao vivo</span>';
+  if(isFinalGame(g)) return '<span class="final-badge">✅ Finalizado</span>';
+  if(isNext) return '<span class="scheduled-badge">⏳ Próximo jogo</span>';
+  if(isStalePendingGame(g)) return '<span class="scheduled-badge">⚠️ Pendente</span>';
+  return '<span class="scheduled-badge">⏳ Agendado</span>';
+}
 function normalizeTxt(v){return String(v||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim()}
 function localDateKey(offset=0){const d=new Date(nowMs());d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function gameDateKey(g){const raw=String(g.date||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;if(/^\d{2}\/\d{2}\/\d{4}$/.test(raw)){const [d,m,y]=raw.split('/');return `${y}-${m}-${d}`}return ''}
@@ -134,9 +156,9 @@ function refreshFilterButtons(){document.querySelectorAll('[data-public-filter]'
 function setPublicFilter(f){publicFilter=f;refreshFilterButtons();renderGames()}
 function setPublicTeamSearch(v){publicTeamQuery=v;if(String(v||'').trim()){publicFilter='all'}refreshFilterButtons();renderGames()}
 function clearPublicFilters(){publicFilter='all';publicTeamQuery='';const el=document.getElementById('publicTeamSearch');if(el)el.value='';refreshFilterButtons();renderGames()}
-function matchPublicFilters(g){const fin=(g.homeScore!==''&&g.awayScore!=='');const key=gameDateKey(g);if(publicFilter==='today'&&key!==localDateKey(0))return false;if(publicFilter==='yesterday'&&key!==localDateKey(-1))return false;if(publicFilter==='tomorrow'&&key!==localDateKey(1))return false;if(publicFilter==='pending'&&fin)return false;if(publicFilter==='finished'&&!fin)return false;const q=normalizeTxt(publicTeamQuery);if(q && !normalizeTxt(`${g.home} ${g.away}`).includes(q))return false;return true}
+function matchPublicFilters(g){const fin=isFinalGame(g);const key=gameDateKey(g);if(publicFilter==='today'&&key!==localDateKey(0))return false;if(publicFilter==='yesterday'&&key!==localDateKey(-1))return false;if(publicFilter==='tomorrow'&&key!==localDateKey(1))return false;if(publicFilter==='pending'&&fin)return false;if(publicFilter==='finished'&&!fin)return false;const q=normalizeTxt(publicTeamQuery);if(q && !normalizeTxt(`${g.home} ${g.away}`).includes(q))return false;return true}
 function publicFilterLabel(){const labels={all:'Todos os jogos',today:'Jogos de hoje',yesterday:'Jogos de ontem',tomorrow:'Jogos de amanhã',pending:'Jogos pendentes',finished:'Jogos concluídos'};return labels[publicFilter]||'Todos os jogos'}
-function getWinner(h,a){h=Number(h);a=Number(a);if(Number.isNaN(h)||Number.isNaN(a))return null;if(h>a)return'home';if(a>h)return'away';return'draw'} function gamePoints(g,pid){const guess=g.guesses?.[pid];if(!guess)return 0;if(g.homeScore===''||g.awayScore===''||guess.home===''||guess.away===''||guess.home===undefined||guess.away===undefined)return 0;const resultWinner=getWinner(g.homeScore,g.awayScore);const guessWinner=getWinner(guess.home,guess.away);if(Number(guess.home)===Number(g.homeScore)&&Number(guess.away)===Number(g.awayScore))return 6;if(resultWinner==='draw'&&guessWinner==='draw')return 1;return resultWinner===guessWinner?3:0} function calcParticipant(p){let points=0,exacts=0;data.games.forEach(g=>{const pts=gamePoints(g,p.id);points+=pts;if(pts===6)exacts++});return{points,exacts}} function ranking(){return data.participants.map(p=>({...p,...calcParticipant(p)})).sort((a,b)=>b.points-a.points||b.exacts-a.exacts||String(a.name).localeCompare(String(b.name),'pt-BR'))}
+function getWinner(h,a){h=Number(h);a=Number(a);if(Number.isNaN(h)||Number.isNaN(a))return null;if(h>a)return'home';if(a>h)return'away';return'draw'} function gamePoints(g,pid){const guess=g.guesses?.[pid];if(!guess)return 0;if(!isFinalGame(g))return 0;if(g.homeScore===''||g.awayScore===''||guess.home===''||guess.away===''||guess.home===undefined||guess.away===undefined)return 0;const resultWinner=getWinner(g.homeScore,g.awayScore);const guessWinner=getWinner(guess.home,guess.away);if(Number(guess.home)===Number(g.homeScore)&&Number(guess.away)===Number(g.awayScore))return 6;if(resultWinner==='draw'&&guessWinner==='draw')return 1;return resultWinner===guessWinner?3:0} function calcParticipant(p){let points=0,exacts=0;data.games.forEach(g=>{const pts=gamePoints(g,p.id);points+=pts;if(pts===6)exacts++});return{points,exacts}} function ranking(){return data.participants.map(p=>({...p,...calcParticipant(p)})).sort((a,b)=>b.points-a.points||b.exacts-a.exacts||String(a.name).localeCompare(String(b.name),'pt-BR'))}
 function plural(n,singular,plural){return Number(n)===1?singular:plural}
 function pontosText(n){return `${n} ${plural(n,'ponto','pontos')}`}
 function exatosText(n){return `🎯 ${n} ${plural(n,'placar exato','placares exatos')}`}
@@ -158,17 +180,26 @@ function renderGames(){
     info.innerHTML='Filtro ativo: <strong>'+publicFilterLabel()+'</strong>'+teamText+(publicTeamQuery?' <span class="muted">(busca por seleção em todos os jogos)</span>':'');
   }
 
-  const pending=filteredAll.filter(g=>!(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(a)-gameTime(b));
-  const finished=filteredAll.filter(g=>(g.homeScore!==''&&g.awayScore!=='')).sort((a,b)=>gameTime(b)-gameTime(a));
+  const live=filteredAll.filter(isLiveGame).sort((a,b)=>gameTime(a)-gameTime(b));
+  const upcoming=filteredAll.filter(isUpcomingGame).sort((a,b)=>gameTime(a)-gameTime(b));
+  const stale=filteredAll.filter(isStalePendingGame).sort((a,b)=>gameTime(b)-gameTime(a));
+  const finished=filteredAll.filter(isFinalGame).sort((a,b)=>gameTime(b)-gameTime(a));
 
   if(!filteredAll.length){
     list.innerHTML='<div class="match muted small">Nenhum jogo encontrado para os filtros selecionados.</div>';
     return;
   }
 
-  renderNextPendingGame(list,pending);
-  renderPendingList(list,pending.slice(1));
+  renderLiveSection(list,live);
+  renderNextPendingGame(list,upcoming);
+  renderPendingList(list,upcoming.slice(1),stale);
   renderFinishedSection(list,finished);
+}
+
+function renderLiveSection(list,games){
+  if(!games.length) return;
+  list.insertAdjacentHTML('beforeend',`<div class="game-section-head"><h3>🔴 Jogos ao vivo <span class="games-count">(${games.length})</span></h3></div>`);
+  games.forEach(g=>renderPublicGameCard(list,g,true,false));
 }
 
 function sectionButton(key, openLabel, closeLabel){
@@ -185,7 +216,8 @@ function renderNextPendingGame(list,pending){
   renderPublicGameCard(list,pending[0],true,true);
 }
 
-function renderPendingList(list,games){
+function renderPendingList(list,games,stale=[]){
+  const total=(games?.length||0)+(stale?.length||0);
   list.insertAdjacentHTML('beforeend',`
     <div class="game-section-head">
       <h3>📋 Próximos jogos <span class="games-count">(${games.length})</span></h3>
@@ -196,31 +228,38 @@ function renderPendingList(list,games){
   if(!publicSections.pendingList) return;
 
   if(!games.length){
-    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum outro jogo pendente encontrado.</div>`);
-    return;
+    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum outro jogo futuro encontrado.</div>`);
+  }else{
+    list.insertAdjacentHTML('beforeend',`<div class="pending-list" id="pendingListBox"></div>`);
+    const box=document.getElementById('pendingListBox');
+
+    games.forEach(g=>{
+      const expanded=!!expandedGames[g.id];
+      if(expanded){
+        renderPublicGameCard(box,g,false,false);
+        return;
+      }
+
+      box.insertAdjacentHTML('beforeend',`
+        <button class="pending-row" onclick="toggleGameDetails('${g.id}')">
+          <span class="pending-chevron">▶</span>
+          <span>
+            <span class="pending-row-main">${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</span>
+            <span class="pending-row-meta">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Agendado</span>
+          </span>
+          <span class="tag">Detalhes</span>
+        </button>
+      `);
+    });
   }
 
-  list.insertAdjacentHTML('beforeend',`<div class="pending-list" id="pendingListBox"></div>`);
-  const box=document.getElementById('pendingListBox');
-
-  games.forEach(g=>{
-    const expanded=!!expandedGames[g.id];
-    if(expanded){
-      renderPublicGameCard(box,g,false,false);
-      return;
-    }
-
-    box.insertAdjacentHTML('beforeend',`
-      <button class="pending-row" onclick="toggleGameDetails('${g.id}')">
-        <span class="pending-chevron">▶</span>
-        <span>
-          <span class="pending-row-main">${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</span>
-          <span class="pending-row-meta">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Aguardando resultado</span>
-        </span>
-        <span class="tag">Detalhes</span>
-      </button>
+  if(stale && stale.length){
+    list.insertAdjacentHTML('beforeend',`
+      <div class="game-section-head"><h3>⏳ Resultados aguardando confirmação <span class="games-count">(${stale.length})</span></h3></div>
+      <div class="section-empty muted small">Os resultados destas partidas ainda não foram confirmados.</div>
     `);
-  });
+    stale.forEach(g=>renderPublicGameCard(list,g,false,false));
+  }
 }
 
 function renderFinishedSection(list,games){
@@ -242,12 +281,13 @@ function renderFinishedSection(list,games){
 }
 
 function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
-  const finished=(g.homeScore!==''&&g.awayScore!=='');
-  const started=isStarted(g);
-  const score=finished?`${g.homeScore} x ${g.awayScore}`:'VS';
-  const expanded=forceExpanded ? true : (expandedGames[g.id]!==undefined ? expandedGames[g.id] : false);
+  const finished=isFinalGame(g);
+  const live=isLiveGame(g);
+  const started=isStarted(g)||live||finished;
+  const score=(hasResultScore(g)||live)?`${g.homeScore||0} x ${g.awayScore||0}`:'VS';
+  const expanded=forceExpanded ? (expandedGames[g.id]!==undefined ? expandedGames[g.id] : true) : (expandedGames[g.id]!==undefined ? expandedGames[g.id] : false);
   const btnText=expanded?'Recolher detalhes':'Ver palpites/detalhes';
-  const cardClass=`match ${isNext?'next-match':''} ${expanded?'':'compact-match'}`;
+  const cardClass=`match ${isNext?'next-match':''} ${live?'live-match':''} ${expanded?'':'compact-match'}`;
 
   const details=expanded?`<div class="match-details">
     ${!started?`<span class="locked-note">🔒 Palpites ocultos até o horário do jogo.</span>`:''}
@@ -258,7 +298,7 @@ function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
           ${data.participants.map(p=>{
             const gs=g.guesses?.[p.id];
             const palpite=!started?`<span class="guess-hidden">🔒 Palpite oculto até o início da partida</span>`:(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined?`${gs.home} x ${gs.away}`:'-');
-            return`<tr><td>${esc(p.name)}</td><td>${palpite}</td><td>${started?gamePoints(g,p.id):0}</td></tr>`
+            return`<tr><td>${esc(p.name)}</td><td>${palpite}</td><td>${finished?gamePoints(g,p.id):0}</td></tr>`
           }).join('')}
         </tbody>
       </table>
@@ -269,7 +309,7 @@ function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
     <div class="${cardClass}">
       <div class="mtop">
         <span><span class="tag">${esc(g.round||'Rodada')}</span> ${fmt(g.date)} • ${esc(g.time)}</span>
-        <span>${finished?'Resultado lançado':(isNext?'Próximo jogo':'Aguardando resultado')}</span>
+        <span>${gameStatusLabel(g,isNext)}</span>
       </div>
       <div class="versus">
         <div class="team">${flagImg(g.home)}<span>${esc(g.home)}</span></div>
@@ -332,7 +372,19 @@ function renderMyTeams(g,score){
     <div class="my-team">${flagImg(g.away)}<span class="my-team-name">${esc(g.away)}</span></div>
   </div>`;
 }
-function renderMyMatchCard(g){if(!g.guesses)g.guesses={};const gs=g.guesses[currentParticipant.id]||{home:'',away:''};const locked=isLocked(g), finished=(g.homeScore!==''&&g.awayScore!==''), filled=hasGuess(g,currentParticipant.id);const palpiteAtual=filled?`${esc(gs.home)} x ${esc(gs.away)}`:'Ainda não preenchido';const score=finished?`${g.homeScore} x ${g.awayScore}`:'x';if(locked)return `<div class="card compact"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="locked">🔒 Bloqueado</span></div>${renderMyTeams(g,score)}<p class="small muted">${fmt(g.date)} • ${esc(g.time)} • Palpite: <strong>${palpiteAtual}</strong></p></div>`;return `<div class="card ${filled?'':'missing-card'}"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="${filled?'open':'locked'}">${filled?'✅ Preenchido':'⚠️ Falta preencher'}</span></div>${renderMyTeams(g,score)}${filled?`<div class="current-guess">Palpite atual: <strong>${palpiteAtual}</strong></div>`:''}<p class="small muted">${fmt(g.date)} • ${esc(g.time)} • bloqueia 15 min antes</p><div class="guess-row"><div><label>${esc(g.home)}</label>${scoreInput(`h_${g.id}`,gs.home)}</div><div class="x">x</div><div><label>${esc(g.away)}</label>${scoreInput(`a_${g.id}`,gs.away)}</div></div><div class="actions"><button class="good" onclick="saveGuess('${esc(g.id)}')">${filled?'Atualizar palpite':'Salvar palpite'}</button></div></div>`}
+function renderMyMatchCard(g){
+  if(!g.guesses)g.guesses={};
+  const gs=g.guesses[currentParticipant.id]||{home:'',away:''};
+  const live=isLiveGame(g), final=isFinalGame(g), locked=isLocked(g)||live||final, filled=hasGuess(g,currentParticipant.id);
+  const palpiteAtual=filled?`${esc(gs.home)} x ${esc(gs.away)}`:'Ainda não preenchido';
+  const score=(hasResultScore(g)||live)?`${g.homeScore||0} x ${g.awayScore||0}`:'x';
+  if(locked){
+    const status=live?'🔒 Bloqueado • 🔴 Ao vivo':(final?'🔒 Bloqueado • ✅ Finalizado':'🔒 Bloqueado');
+    return `<div class="card compact ${live?'live-match':''}"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="locked">${status}</span></div>${renderMyTeams(g,score)}<p class="small muted">${fmt(g.date)} • ${esc(g.time)} • Palpite: <strong>${palpiteAtual}</strong></p></div>`;
+  }
+  return `<div class="card ${filled?'':'missing-card'}"><div class="mtop"><span class="tag">${esc(g.round||'Rodada')}</span><span class="${filled?'open':'locked'}">${filled?'✅ Preenchido':'⚠️ Falta preencher'}</span></div>${renderMyTeams(g,score)}${filled?`<div class="current-guess">Palpite atual: <strong>${palpiteAtual}</strong></div>`:''}<p class="small muted">${fmt(g.date)} • ${esc(g.time)} • bloqueia 15 min antes</p><div class="guess-row"><div><label>${esc(g.home)}</label>${scoreInput(`h_${g.id}`,gs.home)}</div><div class="x">x</div><div><label>${esc(g.away)}</label>${scoreInput(`a_${g.id}`,gs.away)}</div></div><div class="actions"><button class="good" onclick="saveGuess('${esc(g.id)}')">${filled?'Atualizar palpite':'Salvar palpite'}</button></div></div>`;
+}
+
 function renderMyGames(){
   const list=document.getElementById('myGamesList');
   list.innerHTML='';
