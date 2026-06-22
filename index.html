@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Release 1.1.5 Encerramento</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.8 Estatísticas Refinadas</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -66,6 +66,18 @@
 
 
     .live-actions{justify-content:center}.live-clock{font-weight:900;color:#ffd0d0}.watch-link{margin-left:0}.live-match.compact-match .actions{justify-content:center}
+
+    .stats-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    @media(min-width:760px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+    .stat-card{background:rgba(0,0,0,.16);border:1px solid var(--line);border-radius:16px;padding:13px;text-align:center}
+    .stat-card .stat-icon{font-size:24px}.stat-card strong{display:block;color:var(--gold);font-size:20px;margin-top:4px}.stat-card span{color:var(--muted);font-size:13px}
+    .stats-tables{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}@media(min-width:900px){.stats-tables{grid-template-columns:1fr 1fr}}
+    .profile-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}@media(min-width:760px){.profile-list{grid-template-columns:repeat(2,1fr)}}
+    .profile-btn{width:100%;text-align:left;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .profile-card{margin-top:14px;background:rgba(0,0,0,.16);border:1px solid rgba(255,209,102,.35);border-radius:18px;padding:14px}
+    .profile-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}@media(min-width:760px){.profile-metrics{grid-template-columns:repeat(4,1fr)}}
+    .profile-metric{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}.profile-metric strong{display:block;color:var(--green);font-size:18px}
+
   </style>
 </head>
 <body>
@@ -115,6 +127,9 @@
 
   <div class="card span12 public-only final-banner hide" id="finalBanner"></div>
   <div class="card span12 public-only"><h2 id="podiumTitle">🥇 Pódio</h2><div class="podium" id="podium"></div></div>
+
+  <div class="card span12 public-only"><h2>📊 Estatísticas do Bolão</h2><div id="statsBox"></div></div>
+  <div class="card span12 public-only"><h2>👤 Perfil dos Participantes</h2><p class="muted small">Clique em um participante para ver o desempenho detalhado no bolão.</p><div id="profileButtons" class="profile-list"></div><div id="profileDetails"></div></div>
   <div class="card span7 public-only"><div class="topbar"><h2 id="rankingTitle">🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()">Ver ranking completo</button></div><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"></tbody></table></div></div>
   <div class="card span5 public-only"><h2>📜 Regras</h2><ul><li>Cravou o placar: <strong>6 pontos</strong>.</li><li>Acertou o vencedor: <strong>3 pontos</strong>.</li><li>Acertou o empate, mas não cravou o placar: <strong>1 ponto</strong>.</li><li>Acertou campeão: <strong>9 pontos</strong>.</li><li>Palpites podem ser alterados até <strong>15 minutos antes</strong> da partida.</li><li>Desempate: mais placares exatos.</li><li>Depois: acerto do campeão.</li><li>Persistindo empate: divide o valor. A porrada fica só na resenha. 😂</li></ul></div>
   <div class="card span12 public-only"><h2>⚽ Rodada / Jogos <span class="games-count" id="publicGamesCount"></span></h2>
@@ -134,7 +149,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v25 • Encerramento oficial • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v27.5 • Status isento + estatísticas • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -144,18 +159,6 @@ firebase.initializeApp(firebaseConfig); const db=firebase.firestore(); const BOL
 let data={config:{},participants:[],games:[]}, currentParticipant=null, filter='open', myTeamQuery='', publicFilter='all', publicTeamQuery='', rankingExpanded=false, expandedGames={}, publicSections={pendingList:true,finished:false};
 const countries={"Brasil":{code:"br",name:"Brasil"},"Haiti":{code:"ht",name:"Haiti"},"Estados Unidos":{code:"us",name:"Estados Unidos"},"Austrália":{code:"au",name:"Austrália"},"Escócia":{code:"gb-sct",name:"Escócia"},"Marrocos":{code:"ma",name:"Marrocos"},"Turquia":{code:"tr",name:"Turquia"},"Paraguai":{code:"py",name:"Paraguai"},"Argentina":{code:"ar",name:"Argentina"},"Espanha":{code:"es",name:"Espanha"},"França":{code:"fr",name:"França"},"Alemanha":{code:"de",name:"Alemanha"},"Portugal":{code:"pt",name:"Portugal"},"Inglaterra":{code:"gb-eng",name:"Inglaterra"},"Uruguai":{code:"uy",name:"Uruguai"},"Holanda":{code:"nl",name:"Holanda"},"Países Baixos":{code:"nl",name:"Países Baixos"},"Bélgica":{code:"be",name:"Bélgica"},"Croácia":{code:"hr",name:"Croácia"},"Japão":{code:"jp",name:"Japão"},"Coreia do Sul":{code:"kr",name:"Coreia do Sul"},"México":{code:"mx",name:"México"},"Canadá":{code:"ca",name:"Canadá"},"Catar":{code:"qa",name:"Catar"},"Arábia Saudita":{code:"sa",name:"Arábia Saudita"},"Senegal":{code:"sn",name:"Senegal"},"Gana":{code:"gh",name:"Gana"},"Suíça":{code:"ch",name:"Suíça"},"República Tcheca":{code:"cz",name:"República Tcheca"},"África do Sul":{code:"za",name:"África do Sul"},"Bósnia e Herzegovina":{code:"ba",name:"Bósnia e Herzegovina"},"Curaçao":{code:"cw",name:"Curaçao"},"Costa do Marfim":{code:"ci",name:"Costa do Marfim"},"Equador":{code:"ec",name:"Equador"},"Suécia":{code:"se",name:"Suécia"},"Tunísia":{code:"tn",name:"Tunísia"},"Egito":{code:"eg",name:"Egito"},"Irã":{code:"ir",name:"Irã"},"Nova Zelândia":{code:"nz",name:"Nova Zelândia"},"Cabo Verde":{code:"cv",name:"Cabo Verde"},"Iraque":{code:"iq",name:"Iraque"},"Noruega":{code:"no",name:"Noruega"},"Argélia":{code:"dz",name:"Argélia"},"Áustria":{code:"at",name:"Áustria"},"Jordânia":{code:"jo",name:"Jordânia"},"RD Congo":{code:"cd",name:"RD Congo"},"Uzbequistão":{code:"uz",name:"Uzbequistão"},"Colômbia":{code:"co",name:"Colômbia"},"Panamá":{code:"pa",name:"Panamá"}};
 function log(msg){document.getElementById('log').textContent=msg} function esc(t){return String(t??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')} function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} function fmt(d){if(!d)return'-';const[y,m,day]=String(d).split('-');return `${day}/${m}/${y}`} function flagImg(team,small=false){const c=countries[String(team||'').trim()];if(!c)return `<span class="flag ${small?'smallflag':''}" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span>`;return `<img class="flag ${small?'smallflag':''}" src="https://flagcdn.com/w80/${c.code}.png" alt="Bandeira ${esc(c.name)}" onerror="this.outerHTML='🏳️'">`}
-function participantPaymentStatus(p){
-  if(p.status==='exempt'||p.status==='isento') return 'exempt';
-  if(p.status==='pending') return 'pending';
-  if(p.status==='paid') return 'paid';
-  return p.paid ? 'paid' : 'pending';
-}
-function participantPaymentText(p){
-  const st=participantPaymentStatus(p);
-  if(st==='exempt') return 'Isento';
-  if(st==='paid') return 'Pago';
-  return 'Pendente';
-}
 function liveStreamUrl(){return String(data.config?.liveStreamUrl||'').trim()}
 function liveWatchButton(){const url=liveStreamUrl();return url?`<a class="watch-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">📺 Assistir transmissão</a>`:''}
 function gameTime(g){const rawDate=String(g.date||'').trim(), rawTime=String(g.time||'00:00').trim();let y,m,d;if(/^\d{4}-\d{2}-\d{2}$/.test(rawDate)){[y,m,d]=rawDate.split('-').map(Number)}else if(/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)){[d,m,y]=rawDate.split('/').map(Number)}else return Number.MAX_SAFE_INTEGER;const[hh,mm]=rawTime.split(':').map(Number);return new Date(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00-03:00`).getTime()}
@@ -242,9 +245,94 @@ function renderFinalBanner(){
     <p class="final-thanks">🙌 Obrigado pela participação! A porrada ficou só na resenha. 😆</p>
   `;
 }
-function render(){refreshFilterButtons();document.getElementById('entryFeeLabel').textContent=money(data.config.entryFee);document.getElementById('lateFeeLabel').textContent=money(data.config.lateFee);document.getElementById('pixKey').value=data.config.pix||'';const paid=data.participants.filter(p=>p.paid);const prize=paid.reduce((s,p)=>s+Number(p.paidValue||0),0);document.getElementById('totalPrize').textContent=money(prize);document.getElementById('paidCount').textContent=participantesPagosText(paid.length);document.getElementById('heroParticipants').textContent=data.participants.length;document.getElementById('heroPrize').textContent=money(prize);document.getElementById('heroUpdated').textContent=hasOfficialChampion()?'Bolão encerrado':new Date(nowMs()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});renderFinalBanner();renderPodium();renderRanking();renderGames()}
+
+function participantStats(p){
+  let pointsNoChampion=0, exacts=0, winnerHits=0, drawHits=0, totalGuesses=0, scoredGuesses=0;
+  data.games.forEach(g=>{
+    const gs=g.guesses?.[p.id];
+    if(!(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined)) return;
+    totalGuesses++;
+    if(!isFinalGame(g)) return;
+    const pts=gamePoints(g,p.id);
+    pointsNoChampion+=pts;
+    if(pts>0) scoredGuesses++;
+    if(pts===6) exacts++;
+    else if(pts===3) winnerHits++;
+    else if(pts===1) drawHits++;
+  });
+  const cBonus=championHit(p)?Number(data.config?.championPoints||9):0;
+  const finalGuesses=data.games.filter(isFinalGame).filter(g=>{const gs=g.guesses?.[p.id];return gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined}).length;
+  const aproveitamento=finalGuesses?Math.round((scoredGuesses/finalGuesses)*100):0;
+  return {points:pointsNoChampion+cBonus, pointsNoChampion, exacts, winnerHits, drawHits, totalGuesses, scoredGuesses, finalGuesses, aproveitamento, championBonus:cBonus, championHit:championHit(p)};
+}
+function allParticipantStats(){return data.participants.map(p=>({...p,stats:participantStats(p)}));}
+function renderStats(){
+  const box=document.getElementById('statsBox');
+  const profileButtons=document.getElementById('profileButtons');
+  if(!box||!profileButtons)return;
+  const stats=allParticipantStats();
+  const finishedGamesCount=data.games.filter(isFinalGame).length;
+  const totalEvaluatedGuesses=stats.reduce((s,p)=>s+p.stats.finalGuesses,0);
+  const totalExacts=stats.reduce((s,p)=>s+p.stats.exacts,0);
+  const totalWinner=stats.reduce((s,p)=>s+p.stats.winnerHits,0);
+  const totalDraw=stats.reduce((s,p)=>s+p.stats.drawHits,0);
+  const finalGuesses=stats.reduce((s,p)=>s+p.stats.finalGuesses,0);
+  const scored=stats.reduce((s,p)=>s+p.stats.scoredGuesses,0);
+  const aproveitamento=finalGuesses?Math.round((scored/finalGuesses)*100):0;
+  const byPoints=[...stats].sort((a,b)=>b.stats.points-a.stats.points||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
+  const byExact=[...stats].sort((a,b)=>b.stats.exacts-a.stats.exacts||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
+  const byWinner=[...stats].sort((a,b)=>b.stats.scoredGuesses-a.stats.scoredGuesses||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
+  const championHits=stats.filter(p=>p.stats.championHit);
+  box.innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">🏆</div><span>Maior Pontuação</span><strong>${byPoints?esc(byPoints.name):'-'}</strong><span>${byPoints?pontosText(byPoints.stats.points):'0 pontos'}</span></div>
+      <div class="stat-card"><div class="stat-icon">🎯</div><span>Rei dos Exatos</span><strong>${byExact?esc(byExact.name):'-'}</strong><span>${byExact?byExact.stats.exacts:0} exato(s)</span></div>
+      <div class="stat-card"><div class="stat-icon">⚽</div><span>Mais resultados acertados</span><strong>${byWinner?esc(byWinner.name):'-'}</strong><span>${byWinner?byWinner.stats.scoredGuesses:0} acerto(s)</span></div>
+      <div class="stat-card"><span>Jogos concluídos</span><strong>${finishedGamesCount}</strong></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><span>Palpites avaliados</span><strong>${totalEvaluatedGuesses}</strong></div>
+      <div class="stat-card"><span>Placares exatos</span><strong>${totalExacts}</strong></div>
+      <div class="stat-card"><span>Empates acertados</span><strong>${totalDraw}</strong></div>
+      <div class="stat-card"><span>Aproveitamento geral</span><strong>${aproveitamento}%</strong></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">👑</div><span>Acertaram Campeão</span><strong>${championHits.length}</strong><span>${hasOfficialChampion()?esc(String(data.config.officialChampion||'')):'aguardando campeão'}</span></div>
+    </div>
+    <div class="stats-tables">
+      <div><h3>🎯 Ranking de Placares Exatos</h3><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Exatos</th></tr></thead><tbody>${[...stats].sort((a,b)=>b.stats.exacts-a.stats.exacts||String(a.name).localeCompare(String(b.name),'pt-BR')).slice(0,10).map((p,i)=>`<tr><td>${i+1}</td><td><strong>${esc(p.name)}</strong></td><td>${p.stats.exacts}</td></tr>`).join('')}</tbody></table></div></div>
+      <div><h3>👑 Acerto do Campeão</h3>${hasOfficialChampion()?`<p>${flagImg(String(data.config.officialChampion||''),true)} <strong>${esc(String(data.config.officialChampion||''))}</strong></p><div style="overflow-x:auto"><table><thead><tr><th>Participante</th><th>Bônus</th></tr></thead><tbody>${championHits.length?championHits.map(p=>`<tr><td>✅ ${esc(p.name)}</td><td>+${p.stats.championBonus}</td></tr>`).join(''):`<tr><td colspan="2" class="muted">Ninguém acertou o campeão.</td></tr>`}</tbody></table></div>`:'<p class="muted">O campeão oficial ainda não foi definido.</p>'}</div>
+    </div>`;
+  profileButtons.innerHTML=stats.sort((a,b)=>b.stats.points-a.stats.points||String(a.name).localeCompare(String(b.name),'pt-BR')).map(p=>`<button class="profile-btn" onclick="showProfile('${esc(p.id)}')"><span><strong>${esc(p.name)}</strong><br><span class="small muted">${pontosText(p.stats.points)} • ${exatosText(p.stats.exacts)}</span></span><span>Ver ▶</span></button>`).join('');
+}
+function showProfile(pid){
+  const box=document.getElementById('profileDetails');
+  const p=data.participants.find(x=>x.id===pid);if(!box||!p)return;
+  const s=participantStats(p);
+  const finishedGames=data.games.filter(isFinalGame);
+  const guessedFinishedGames=finishedGames.filter(g=>{
+    const gs=g.guesses?.[p.id];
+    return !!(gs&&gs.home!==''&&gs.away!==''&&gs.home!==undefined&&gs.away!==undefined);
+  });
+  const rows=guessedFinishedGames.slice().sort((a,b)=>gameTime(b)-gameTime(a)).map(g=>{
+    const gs=g.guesses?.[p.id];
+    const palpite=`${esc(gs.home)} x ${esc(gs.away)}`;
+    return `<tr><td>${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</td><td>${esc(g.homeScore)} x ${esc(g.awayScore)}</td><td>${palpite}</td><td>${gamePoints(g,p.id)}</td></tr>`;
+  }).join('');
+  box.innerHTML=`<div class="profile-card"><div class="topbar"><h3>👤 ${esc(p.name)}</h3><button class="secondary" onclick="document.getElementById('profileDetails').innerHTML=''">Fechar</button></div><div class="profile-metrics"><div class="profile-metric">Pontos<strong>${s.points}</strong></div><div class="profile-metric">Exatos<strong>${s.exacts}</strong></div><div class="profile-metric">Resultados<strong>${s.scoredGuesses}</strong></div><div class="profile-metric">Aproveitamento<strong>${s.aproveitamento}%</strong></div><div class="profile-metric">Jogos apostados<strong>${s.totalGuesses}</strong></div></div><p class="muted small">Campeão escolhido: ${p.champion?flagImg(p.champion,true)+' '+esc(p.champion):'-'} ${s.championBonus?`• bônus +${s.championBonus}`:''}</p><details open><summary>Histórico de jogos finalizados com palpite (${guessedFinishedGames.length})</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Jogo</th><th>Resultado</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="muted">Nenhum jogo finalizado com palpite.</td></tr>'}</tbody></table></div></details></div>`;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function render(){refreshFilterButtons();document.getElementById('entryFeeLabel').textContent=money(data.config.entryFee);document.getElementById('lateFeeLabel').textContent=money(data.config.lateFee);document.getElementById('pixKey').value=data.config.pix||'';const paid=data.participants.filter(p=>p.paid);const prize=paid.reduce((s,p)=>s+Number(p.paidValue||0),0);document.getElementById('totalPrize').textContent=money(prize);document.getElementById('paidCount').textContent=participantesPagosText(paid.length);document.getElementById('heroParticipants').textContent=data.participants.length;document.getElementById('heroPrize').textContent=money(prize);document.getElementById('heroUpdated').textContent=hasOfficialChampion()?'Bolão encerrado':new Date(nowMs()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});renderFinalBanner();renderPodium();renderStats();renderRanking();renderGames()}
 function renderPodium(){const box=document.getElementById('podium');box.innerHTML='';const r=ranking().slice(0,3), medals=['🥇','🥈','🥉'];if(!r.length){box.innerHTML='<p class="muted">Nenhum participante cadastrado.</p>';return}r.forEach((p,i)=>box.insertAdjacentHTML('beforeend',`<div class="podium-card"><div class="podium-medal">${medals[i]}</div><div class="podium-name">${esc(p.name)}</div><div class="podium-points">${pontosText(p.points)}</div><div class="small muted">${exatosText(p.exacts)}</div></div>`))}
-function renderRanking(){const body=document.getElementById('rankingBody');body.innerHTML='';const all=ranking(), visible=rankingExpanded?all:all.slice(0,5);const btn=document.getElementById('rankingToggleBtn');btn.style.display=all.length>5?'inline-block':'none';btn.textContent=rankingExpanded?'Mostrar top 5':'Ver ranking completo';visible.forEach((p,i)=>body.insertAdjacentHTML('beforeend',`<tr><td><span class="rank">${i+1}</span></td><td><strong>${esc(p.name)}</strong></td><td><strong>${p.points}</strong></td><td>${p.exacts}</td><td>${flagImg(p.champion,true)} ${esc(p.champion||'-')} ${p.championBonus?'<span class="paid small">+ '+p.championBonus+'</span>':''}</td><td class="${participantPaymentStatus(p)==='paid'?'paid':participantPaymentStatus(p)==='exempt'?'exempt':'pending'}">${participantPaymentText(p)}</td></tr>`));if(!rankingExpanded&&all.length>5)body.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="muted small">Mostrando top 5 de ${all.length} ${plural(all.length,'participante','participantes')}. Clique em "Ver ranking completo" para expandir.</td></tr>`)} function toggleRanking(){rankingExpanded=!rankingExpanded;renderRanking()}
+
+function participantPaymentStatus(p){
+  const st=String(p.status||p.paymentStatus||'').toLowerCase();
+  if(st==='exempt'||st==='isento') return {label:'Isento',className:'exempt'};
+  if(st==='paid'||st==='pago'||p.paid===true) return {label:'Pago',className:'paid'};
+  return {label:'Pendente',className:'pending'};
+}
+function renderRanking(){const body=document.getElementById('rankingBody');body.innerHTML='';const all=ranking(), visible=rankingExpanded?all:all.slice(0,5);const btn=document.getElementById('rankingToggleBtn');btn.style.display=all.length>5?'inline-block':'none';btn.textContent=rankingExpanded?'Mostrar top 5':'Ver ranking completo';visible.forEach((p,i)=>{const pay=participantPaymentStatus(p);body.insertAdjacentHTML('beforeend',`<tr><td><span class="rank">${i+1}</span></td><td><strong>${esc(p.name)}</strong></td><td><strong>${p.points}</strong></td><td>${p.exacts}</td><td>${flagImg(p.champion,true)} ${esc(p.champion||'-')} ${p.championBonus?'<span class="paid small">+ '+p.championBonus+'</span>':''}</td><td class="${pay.className}">${pay.label}</td></tr>`)});if(!rankingExpanded&&all.length>5)body.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="muted small">Mostrando top 5 de ${all.length} ${plural(all.length,'participante','participantes')}. Clique em "Ver ranking completo" para expandir.</td></tr>`)} function toggleRanking(){rankingExpanded=!rankingExpanded;renderRanking()}
 function renderGames(){
   const list=document.getElementById('gamesList');
   list.innerHTML='';
