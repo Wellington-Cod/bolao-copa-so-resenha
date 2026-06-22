@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Release 1.1.7 Histórico Inteligente</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.8 Estatísticas Refinadas</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -149,7 +149,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v27.1 • Histórico inteligente • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v27.2 • Estatísticas refinadas • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -271,7 +271,8 @@ function renderStats(){
   const profileButtons=document.getElementById('profileButtons');
   if(!box||!profileButtons)return;
   const stats=allParticipantStats();
-  const totalGuesses=stats.reduce((s,p)=>s+p.stats.totalGuesses,0);
+  const finishedGamesCount=data.games.filter(isFinalGame).length;
+  const totalEvaluatedGuesses=stats.reduce((s,p)=>s+p.stats.finalGuesses,0);
   const totalExacts=stats.reduce((s,p)=>s+p.stats.exacts,0);
   const totalWinner=stats.reduce((s,p)=>s+p.stats.winnerHits,0);
   const totalDraw=stats.reduce((s,p)=>s+p.stats.drawHits,0);
@@ -284,16 +285,19 @@ function renderStats(){
   const championHits=stats.filter(p=>p.stats.championHit);
   box.innerHTML=`
     <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">🏆</div><span>Maior Pontuação</span><strong>${byPoints?esc(byPoints.name):'-'}</strong><span>${byPoints?pontosText(byPoints.stats.points):'0 pontos'}</span></div>
       <div class="stat-card"><div class="stat-icon">🎯</div><span>Rei dos Exatos</span><strong>${byExact?esc(byExact.name):'-'}</strong><span>${byExact?byExact.stats.exacts:0} exato(s)</span></div>
       <div class="stat-card"><div class="stat-icon">⚽</div><span>Mais Vencedores</span><strong>${byWinner?esc(byWinner.name):'-'}</strong><span>${byWinner?byWinner.stats.winnerHits:0} acerto(s)</span></div>
-      <div class="stat-card"><div class="stat-icon">🏆</div><span>Maior Pontuação</span><strong>${byPoints?esc(byPoints.name):'-'}</strong><span>${byPoints?pontosText(byPoints.stats.points):'0 pontos'}</span></div>
-      <div class="stat-card"><div class="stat-icon">👑</div><span>Acertaram Campeão</span><strong>${championHits.length}</strong><span>${hasOfficialChampion()?esc(String(data.config.officialChampion||'')):'aguardando campeão'}</span></div>
+      <div class="stat-card"><span>Jogos concluídos</span><strong>${finishedGamesCount}</strong></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><span>Palpites realizados</span><strong>${totalGuesses}</strong></div>
+      <div class="stat-card"><span>Palpites avaliados</span><strong>${totalEvaluatedGuesses}</strong></div>
       <div class="stat-card"><span>Placares exatos</span><strong>${totalExacts}</strong></div>
       <div class="stat-card"><span>Empates acertados</span><strong>${totalDraw}</strong></div>
       <div class="stat-card"><span>Aproveitamento geral</span><strong>${aproveitamento}%</strong></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">👑</div><span>Acertaram Campeão</span><strong>${championHits.length}</strong><span>${hasOfficialChampion()?esc(String(data.config.officialChampion||'')):'aguardando campeão'}</span></div>
     </div>
     <div class="stats-tables">
       <div><h3>🎯 Ranking de Placares Exatos</h3><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Exatos</th></tr></thead><tbody>${[...stats].sort((a,b)=>b.stats.exacts-a.stats.exacts||String(a.name).localeCompare(String(b.name),'pt-BR')).slice(0,10).map((p,i)=>`<tr><td>${i+1}</td><td><strong>${esc(p.name)}</strong></td><td>${p.stats.exacts}</td></tr>`).join('')}</tbody></table></div></div>
