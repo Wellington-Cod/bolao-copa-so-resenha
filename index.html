@@ -146,7 +146,7 @@ function gameStatusLabel(g,isNext=false){
   if(isLiveGame(g)) return '<span class="live-badge">🔴 Ao vivo</span>';
   if(isFinalGame(g)) return '<span class="final-badge">✅ Finalizado</span>';
   if(isNext) return '<span class="scheduled-badge">⏳ Próximo jogo</span>';
-  if(isStalePendingGame(g)) return '<span class="scheduled-badge">⚠️ Pendente</span>';
+  if(isStalePendingGame(g)) return '<span class="scheduled-badge">⏳ Aguardando atualização</span>';
   return '<span class="scheduled-badge">⏳ Agendado</span>';
 }
 function normalizeTxt(v){return String(v||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim()}
@@ -191,8 +191,14 @@ function renderGames(){
   }
 
   renderLiveSection(list,live);
-  renderNextPendingGame(list,upcoming);
-  renderPendingList(list,upcoming.slice(1),stale);
+  if(live.length){
+    renderNextAsListWhenLive(list,upcoming);
+    renderStaleOnlySection(list,stale);
+  }else{
+    renderNextPendingGame(list,upcoming);
+    upcoming.splice(0,1);
+    renderPendingList(list,upcoming,stale);
+  }
   renderFinishedSection(list,finished);
 }
 
@@ -216,6 +222,48 @@ function renderNextPendingGame(list,pending){
   renderPublicGameCard(list,pending[0],true,true);
 }
 
+function renderNextAsListWhenLive(list,games){
+  list.insertAdjacentHTML('beforeend',`
+    <div class="game-section-head">
+      <h3>🔥 Próximos jogos <span class="games-count">(${games.length})</span></h3>
+    </div>
+  `);
+  if(!games.length){
+    list.insertAdjacentHTML('beforeend',`<div class="section-empty muted small">Nenhum próximo jogo encontrado.</div>`);
+    return;
+  }
+  list.insertAdjacentHTML('beforeend',`<div class="pending-list" id="nextWhenLiveBox"></div>`);
+  const box=document.getElementById('nextWhenLiveBox');
+  games.forEach(g=>renderPublicPendingRow(box,g,'Agendado'));
+}
+
+function renderPublicPendingRow(box,g,statusText='Agendado'){
+  const expanded=!!expandedGames[g.id];
+  if(expanded){
+    renderPublicGameCard(box,g,false,false);
+    return;
+  }
+  box.insertAdjacentHTML('beforeend',`
+    <button class="pending-row" onclick="toggleGameDetails('${g.id}')">
+      <span class="pending-chevron">▶</span>
+      <span>
+        <span class="pending-row-main">${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</span>
+        <span class="pending-row-meta">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • ${esc(statusText)}</span>
+      </span>
+      <span class="tag">Detalhes</span>
+    </button>
+  `);
+}
+
+function renderStaleOnlySection(list,stale=[]){
+  if(!stale || !stale.length) return;
+  list.insertAdjacentHTML('beforeend',`
+    <div class="game-section-head"><h3>⏳ Jogos iniciados aguardando atualização <span class="games-count">(${stale.length})</span></h3></div>
+    <div class="section-empty muted small">Estas partidas já passaram do horário previsto e aguardam atualização do resultado.</div>
+  `);
+  stale.forEach(g=>renderPublicGameCard(list,g,false,false));
+}
+
 function renderPendingList(list,games,stale=[]){
   const total=(games?.length||0)+(stale?.length||0);
   list.insertAdjacentHTML('beforeend',`
@@ -233,30 +281,13 @@ function renderPendingList(list,games,stale=[]){
     list.insertAdjacentHTML('beforeend',`<div class="pending-list" id="pendingListBox"></div>`);
     const box=document.getElementById('pendingListBox');
 
-    games.forEach(g=>{
-      const expanded=!!expandedGames[g.id];
-      if(expanded){
-        renderPublicGameCard(box,g,false,false);
-        return;
-      }
-
-      box.insertAdjacentHTML('beforeend',`
-        <button class="pending-row" onclick="toggleGameDetails('${g.id}')">
-          <span class="pending-chevron">▶</span>
-          <span>
-            <span class="pending-row-main">${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</span>
-            <span class="pending-row-meta">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Agendado</span>
-          </span>
-          <span class="tag">Detalhes</span>
-        </button>
-      `);
-    });
+    games.forEach(g=>renderPublicPendingRow(box,g,'Agendado'));
   }
 
   if(stale && stale.length){
     list.insertAdjacentHTML('beforeend',`
-      <div class="game-section-head"><h3>⏳ Resultados aguardando confirmação <span class="games-count">(${stale.length})</span></h3></div>
-      <div class="section-empty muted small">Os resultados destas partidas ainda não foram confirmados.</div>
+      <div class="game-section-head"><h3>⏳ Jogos iniciados aguardando atualização <span class="games-count">(${stale.length})</span></h3></div>
+      <div class="section-empty muted small">Estas partidas já passaram do horário previsto e aguardam atualização do resultado.</div>
     `);
     stale.forEach(g=>renderPublicGameCard(list,g,false,false));
   }
