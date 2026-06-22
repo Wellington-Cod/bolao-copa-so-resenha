@@ -149,7 +149,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v27.2 • Estatísticas refinadas • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v27.3 • Hotfix estatísticas • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -281,13 +281,13 @@ function renderStats(){
   const aproveitamento=finalGuesses?Math.round((scored/finalGuesses)*100):0;
   const byPoints=[...stats].sort((a,b)=>b.stats.points-a.stats.points||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
   const byExact=[...stats].sort((a,b)=>b.stats.exacts-a.stats.exacts||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
-  const byWinner=[...stats].sort((a,b)=>b.stats.winnerHits-a.stats.winnerHits||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
+  const byWinner=[...stats].sort((a,b)=>b.stats.scoredGuesses-a.stats.scoredGuesses||String(a.name).localeCompare(String(b.name),'pt-BR'))[0];
   const championHits=stats.filter(p=>p.stats.championHit);
   box.innerHTML=`
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-icon">🏆</div><span>Maior Pontuação</span><strong>${byPoints?esc(byPoints.name):'-'}</strong><span>${byPoints?pontosText(byPoints.stats.points):'0 pontos'}</span></div>
       <div class="stat-card"><div class="stat-icon">🎯</div><span>Rei dos Exatos</span><strong>${byExact?esc(byExact.name):'-'}</strong><span>${byExact?byExact.stats.exacts:0} exato(s)</span></div>
-      <div class="stat-card"><div class="stat-icon">⚽</div><span>Mais Vencedores</span><strong>${byWinner?esc(byWinner.name):'-'}</strong><span>${byWinner?byWinner.stats.winnerHits:0} acerto(s)</span></div>
+      <div class="stat-card"><div class="stat-icon">⚽</div><span>Mais resultados acertados</span><strong>${byWinner?esc(byWinner.name):'-'}</strong><span>${byWinner?byWinner.stats.scoredGuesses:0} acerto(s)</span></div>
       <div class="stat-card"><span>Jogos concluídos</span><strong>${finishedGamesCount}</strong></div>
     </div>
     <div class="stats-grid">
@@ -319,7 +319,7 @@ function showProfile(pid){
     const palpite=`${esc(gs.home)} x ${esc(gs.away)}`;
     return `<tr><td>${flagImg(g.home,true)} ${esc(g.home)} x ${flagImg(g.away,true)} ${esc(g.away)}</td><td>${esc(g.homeScore)} x ${esc(g.awayScore)}</td><td>${palpite}</td><td>${gamePoints(g,p.id)}</td></tr>`;
   }).join('');
-  box.innerHTML=`<div class="profile-card"><div class="topbar"><h3>👤 ${esc(p.name)}</h3><button class="secondary" onclick="document.getElementById('profileDetails').innerHTML=''">Fechar</button></div><div class="profile-metrics"><div class="profile-metric">Pontos<strong>${s.points}</strong></div><div class="profile-metric">Exatos<strong>${s.exacts}</strong></div><div class="profile-metric">Vencedores<strong>${s.winnerHits}</strong></div><div class="profile-metric">Aproveitamento<strong>${s.aproveitamento}%</strong></div><div class="profile-metric">Jogos apostados<strong>${s.totalGuesses}</strong></div></div><p class="muted small">Campeão escolhido: ${p.champion?flagImg(p.champion,true)+' '+esc(p.champion):'-'} ${s.championBonus?`• bônus +${s.championBonus}`:''}</p><details open><summary>Histórico de jogos finalizados com palpite (${guessedFinishedGames.length})</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Jogo</th><th>Resultado</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="muted">Nenhum jogo finalizado com palpite.</td></tr>'}</tbody></table></div></details></div>`;
+  box.innerHTML=`<div class="profile-card"><div class="topbar"><h3>👤 ${esc(p.name)}</h3><button class="secondary" onclick="document.getElementById('profileDetails').innerHTML=''">Fechar</button></div><div class="profile-metrics"><div class="profile-metric">Pontos<strong>${s.points}</strong></div><div class="profile-metric">Exatos<strong>${s.exacts}</strong></div><div class="profile-metric">Resultados<strong>${s.scoredGuesses}</strong></div><div class="profile-metric">Aproveitamento<strong>${s.aproveitamento}%</strong></div><div class="profile-metric">Jogos apostados<strong>${s.totalGuesses}</strong></div></div><p class="muted small">Campeão escolhido: ${p.champion?flagImg(p.champion,true)+' '+esc(p.champion):'-'} ${s.championBonus?`• bônus +${s.championBonus}`:''}</p><details open><summary>Histórico de jogos finalizados com palpite (${guessedFinishedGames.length})</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Jogo</th><th>Resultado</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="muted">Nenhum jogo finalizado com palpite.</td></tr>'}</tbody></table></div></details></div>`;
   box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
