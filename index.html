@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Release 1.1.3 Live Compact</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.5 Encerramento</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -13,6 +13,18 @@
     button,input,select{font:inherit}button{border:0;border-radius:13px;padding:11px 14px;background:var(--gold);color:#062033;font-weight:900;cursor:pointer}button.secondary{color:var(--text);background:rgba(255,255,255,.12);border:1px solid var(--line)}button.good{background:var(--green);color:#062033}button.danger{background:var(--red);color:#fff}button:disabled{opacity:.55;cursor:not-allowed}button.filter-active{background:var(--gold)!important;color:#062033!important;border-color:rgba(255,209,102,.85)!important;box-shadow:0 0 0 2px rgba(255,209,102,.20)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     input,select{width:100%;color:var(--text);background:rgba(0,0,0,.24);border:1px solid var(--line);border-radius:12px;padding:11px;outline:none}select option{color:#111}label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}.copybox{display:flex;gap:8px}.copybox input{flex:1;min-width:0}.money{font-size:36px;color:var(--green);font-weight:900;margin:3px 0}
     table{width:100%;border-collapse:collapse;border-radius:14px;overflow:hidden}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle}th{color:var(--gold);background:rgba(0,0,0,.16);font-size:13px}tr:last-child td{border-bottom:0}.rank{display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;background:rgba(255,255,255,.12);font-weight:900}.paid{color:var(--green);font-weight:900}.pending{color:var(--red);font-weight:900}
+    
+    .final-banner{border:1px solid rgba(255,209,102,.55);background:linear-gradient(135deg,rgba(255,209,102,.16),rgba(46,229,157,.08),rgba(72,181,255,.10));box-shadow:0 0 0 1px rgba(255,209,102,.16),var(--shadow)}
+    .final-banner h2{font-size:clamp(24px,5vw,36px);text-align:center;color:var(--gold);margin-bottom:14px}
+    .final-champion{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:clamp(22px,5vw,34px);font-weight:900;margin:12px 0}
+    .final-champion .flag{width:48px;height:34px}
+    .final-summary{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+    @media(min-width:760px){.final-summary{grid-template-columns:repeat(4,1fr)}}
+    .final-summary-item{background:rgba(0,0,0,.16);border:1px solid var(--line);border-radius:15px;padding:12px;text-align:center}
+    .final-summary-item strong{display:block;color:var(--green);font-size:18px;margin-top:4px}
+    .final-podium-title{text-align:center;color:var(--gold);font-weight:900;margin:18px 0 10px;font-size:18px}
+    .final-thanks{text-align:center;margin-top:12px;color:#ffe7a3;font-weight:800}
+
     .podium{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:720px){.podium{grid-template-columns:repeat(3,1fr)}}.podium-card{background:rgba(0,0,0,.15);border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center}.podium-medal{font-size:34px}.podium-name{font-weight:900;font-size:18px;margin-top:4px}.podium-points{color:var(--green);font-weight:900;margin-top:4px}
     .match{background:rgba(0,0,0,.15);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}.mtop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-bottom:12px}.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.team{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:100px;text-align:center;font-weight:900}.team span{font-size:15px}.score{font-size:24px;color:var(--gold);font-weight:900;white-space:nowrap;text-align:center}.tag{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(72,181,255,.14);color:#cdefff;font-size:12px}.guess-hidden{color:var(--muted);font-style:italic}.locked-note{display:inline-block;margin-top:8px;color:var(--gold);font-size:13px;font-weight:800}
     ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.55}.notice{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.35);color:#ffe7a3;padding:12px;border-radius:14px}.footer{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px}.hide{display:none}.public-floating-nav{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;flex-direction:column;gap:8px}.public-floating-nav button{box-shadow:0 10px 28px rgba(0,0,0,.35)}
@@ -101,8 +113,9 @@
     </div>
   </div>
 
-  <div class="card span12 public-only"><h2>🥇 Pódio</h2><div class="podium" id="podium"></div></div>
-  <div class="card span7 public-only"><div class="topbar"><h2>🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()">Ver ranking completo</button></div><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"></tbody></table></div></div>
+  <div class="card span12 public-only final-banner hide" id="finalBanner"></div>
+  <div class="card span12 public-only"><h2 id="podiumTitle">🥇 Pódio</h2><div class="podium" id="podium"></div></div>
+  <div class="card span7 public-only"><div class="topbar"><h2 id="rankingTitle">🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()">Ver ranking completo</button></div><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"></tbody></table></div></div>
   <div class="card span5 public-only"><h2>📜 Regras</h2><ul><li>Cravou o placar: <strong>6 pontos</strong>.</li><li>Acertou o vencedor: <strong>3 pontos</strong>.</li><li>Acertou o empate, mas não cravou o placar: <strong>1 ponto</strong>.</li><li>Acertou campeão: <strong>9 pontos</strong>.</li><li>Palpites podem ser alterados até <strong>15 minutos antes</strong> da partida.</li><li>Desempate: mais placares exatos.</li><li>Depois: acerto do campeão.</li><li>Persistindo empate: divide o valor. A porrada fica só na resenha. 😂</li></ul></div>
   <div class="card span12 public-only"><h2>⚽ Rodada / Jogos <span class="games-count" id="publicGamesCount"></span></h2>
     <div class="actions">
@@ -121,7 +134,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v23 • Ao vivo compacto + minuto • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v25 • Encerramento oficial • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -169,16 +182,57 @@ function setPublicTeamSearch(v){publicTeamQuery=v;if(String(v||'').trim()){publi
 function clearPublicFilters(){publicFilter='all';publicTeamQuery='';const el=document.getElementById('publicTeamSearch');if(el)el.value='';refreshFilterButtons();renderGames()}
 function matchPublicFilters(g){const fin=isFinalGame(g);const key=gameDateKey(g);if(publicFilter==='today'&&key!==localDateKey(0))return false;if(publicFilter==='yesterday'&&key!==localDateKey(-1))return false;if(publicFilter==='tomorrow'&&key!==localDateKey(1))return false;if(publicFilter==='pending'&&fin)return false;if(publicFilter==='finished'&&!fin)return false;const q=normalizeTxt(publicTeamQuery);if(q && !normalizeTxt(`${g.home} ${g.away}`).includes(q))return false;return true}
 function publicFilterLabel(){const labels={all:'Todos os jogos',today:'Jogos de hoje',yesterday:'Jogos de ontem',tomorrow:'Jogos de amanhã',pending:'Jogos pendentes',finished:'Jogos concluídos'};return labels[publicFilter]||'Todos os jogos'}
-function getWinner(h,a){h=Number(h);a=Number(a);if(Number.isNaN(h)||Number.isNaN(a))return null;if(h>a)return'home';if(a>h)return'away';return'draw'} function gamePoints(g,pid){const guess=g.guesses?.[pid];if(!guess)return 0;if(!isFinalGame(g))return 0;if(g.homeScore===''||g.awayScore===''||guess.home===''||guess.away===''||guess.home===undefined||guess.away===undefined)return 0;const resultWinner=getWinner(g.homeScore,g.awayScore);const guessWinner=getWinner(guess.home,guess.away);if(Number(guess.home)===Number(g.homeScore)&&Number(guess.away)===Number(g.awayScore))return 6;if(resultWinner==='draw'&&guessWinner==='draw')return 1;return resultWinner===guessWinner?3:0} function calcParticipant(p){let points=0,exacts=0;data.games.forEach(g=>{const pts=gamePoints(g,p.id);points+=pts;if(pts===6)exacts++});return{points,exacts}} function ranking(){return data.participants.map(p=>({...p,...calcParticipant(p)})).sort((a,b)=>b.points-a.points||b.exacts-a.exacts||String(a.name).localeCompare(String(b.name),'pt-BR'))}
+function getWinner(h,a){h=Number(h);a=Number(a);if(Number.isNaN(h)||Number.isNaN(a))return null;if(h>a)return'home';if(a>h)return'away';return'draw'} function gamePoints(g,pid){const guess=g.guesses?.[pid];if(!guess)return 0;if(!isFinalGame(g))return 0;if(g.homeScore===''||g.awayScore===''||guess.home===''||guess.away===''||guess.home===undefined||guess.away===undefined)return 0;const resultWinner=getWinner(g.homeScore,g.awayScore);const guessWinner=getWinner(guess.home,guess.away);if(Number(guess.home)===Number(g.homeScore)&&Number(guess.away)===Number(g.awayScore))return 6;if(resultWinner==='draw'&&guessWinner==='draw')return 1;return resultWinner===guessWinner?3:0} function championHit(p){const official=String(data.config?.officialChampion||'').trim();return !!(official&&p.champion&&normalizeTxt(p.champion)===normalizeTxt(official))} function calcParticipant(p){let points=0,exacts=0;data.games.forEach(g=>{const pts=gamePoints(g,p.id);points+=pts;if(pts===6)exacts++});const championBonus=championHit(p)?Number(data.config?.championPoints||9):0;points+=championBonus;return{points,exacts,championBonus,championHit:championHit(p)}} function ranking(){return data.participants.map(p=>({...p,...calcParticipant(p)})).sort((a,b)=>b.points-a.points||b.exacts-a.exacts||Number(b.championHit)-Number(a.championHit)||String(a.name).localeCompare(String(b.name),'pt-BR'))}
 function plural(n,singular,plural){return Number(n)===1?singular:plural}
 function pontosText(n){return `${n} ${plural(n,'ponto','pontos')}`}
 function exatosText(n){return `🎯 ${n} ${plural(n,'placar exato','placares exatos')}`}
 function participantesPagosText(n){return `${n} ${plural(n,'participante pago','participantes pagos')}`}
 function jogosCadastradosText(n){return `${n} ${plural(n,'jogo cadastrado','jogos cadastrados')}`}
 async function loadBolao(){try{log('Sincronizando horário do Firebase...');await syncServerTime();log('Carregando dados do Firebase...');const snap=await BOLAO_REF.get();if(!snap.exists){log('Documento boloes/copa2026 não encontrado.');return}data=snap.data();data.config=data.config||{};data.participants=data.participants||[];data.games=data.games||[];fillParticipants();render();if(currentParticipant){currentParticipant=data.participants.find(p=>p.id===currentParticipant.id)||currentParticipant;renderMyGames()}log(`Dados carregados: ${data.participants.length} ${plural(data.participants.length,'participante','participantes')}, ${data.games.length} ${plural(data.games.length,'jogo','jogos')}.`)}catch(e){console.error(e);log('Erro ao carregar Firebase: '+e.message)}}
-function render(){refreshFilterButtons();document.getElementById('entryFeeLabel').textContent=money(data.config.entryFee);document.getElementById('lateFeeLabel').textContent=money(data.config.lateFee);document.getElementById('pixKey').value=data.config.pix||'';const paid=data.participants.filter(p=>p.paid);const prize=paid.reduce((s,p)=>s+Number(p.paidValue||0),0);document.getElementById('totalPrize').textContent=money(prize);document.getElementById('paidCount').textContent=participantesPagosText(paid.length);document.getElementById('heroParticipants').textContent=data.participants.length;document.getElementById('heroPrize').textContent=money(prize);document.getElementById('heroUpdated').textContent=new Date(nowMs()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});renderPodium();renderRanking();renderGames()}
+function hasOfficialChampion(){return !!String(data.config?.officialChampion||'').trim()}
+function finalClosedDateText(){
+  const finished=[...data.games].filter(isFinalGame).sort((a,b)=>gameTime(b)-gameTime(a));
+  if(finished[0]?.date) return fmt(finished[0].date);
+  if(data.ultimaAtualizacao) return new Date(data.ultimaAtualizacao).toLocaleDateString('pt-BR');
+  return '--/--/----';
+}
+function renderFinalBanner(){
+  const box=document.getElementById('finalBanner');
+  const rankingTitle=document.getElementById('rankingTitle');
+  const podiumTitle=document.getElementById('podiumTitle');
+  if(!box)return;
+  if(!hasOfficialChampion()){
+    box.classList.add('hide');
+    if(rankingTitle)rankingTitle.textContent='🏆 Ranking';
+    if(podiumTitle)podiumTitle.textContent='🥇 Pódio';
+    return;
+  }
+  const official=String(data.config.officialChampion||'').trim();
+  const r=ranking().slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  const championPoints=Number(data.config?.championPoints||9);
+  const paid=data.participants.filter(p=>p.paid);
+  box.classList.remove('hide');
+  if(rankingTitle)rankingTitle.textContent='🏆 Ranking Final';
+  if(podiumTitle)podiumTitle.textContent='🥇 Pódio Final';
+  box.innerHTML=`
+    <h2>🏆 Copa do Mundo 2026 Encerrada</h2>
+    <div class="final-champion">${flagImg(official)} <span>Campeão Mundial: ${esc(official)}</span></div>
+    <p class="muted" style="text-align:center;margin:0">📅 Encerrada em: <strong>${esc(finalClosedDateText())}</strong></p>
+    <div class="final-podium-title">🥇 Pódio Final do Bolão</div>
+    <div class="podium">${r.map((p,i)=>`<div class="podium-card"><div class="podium-medal">${medals[i]||'🏅'}</div><div class="podium-name">${esc(p.name)}</div><div class="podium-points">${pontosText(p.points)}</div><div class="small muted">${exatosText(p.exacts)}${p.championBonus?` • Campeão +${p.championBonus}`:''}</div></div>`).join('')}</div>
+    <div class="final-summary">
+      <div class="final-summary-item">Participantes<strong>${data.participants.length}</strong></div>
+      <div class="final-summary-item">Pagos<strong>${paid.length}</strong></div>
+      <div class="final-summary-item">Jogos<strong>${data.games.length}</strong></div>
+      <div class="final-summary-item">Bônus campeão<strong>+${championPoints}</strong></div>
+    </div>
+    <p class="final-thanks">🙌 Obrigado pela participação! A porrada ficou só na resenha. 😆</p>
+  `;
+}
+function render(){refreshFilterButtons();document.getElementById('entryFeeLabel').textContent=money(data.config.entryFee);document.getElementById('lateFeeLabel').textContent=money(data.config.lateFee);document.getElementById('pixKey').value=data.config.pix||'';const paid=data.participants.filter(p=>p.paid);const prize=paid.reduce((s,p)=>s+Number(p.paidValue||0),0);document.getElementById('totalPrize').textContent=money(prize);document.getElementById('paidCount').textContent=participantesPagosText(paid.length);document.getElementById('heroParticipants').textContent=data.participants.length;document.getElementById('heroPrize').textContent=money(prize);document.getElementById('heroUpdated').textContent=hasOfficialChampion()?'Bolão encerrado':new Date(nowMs()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});renderFinalBanner();renderPodium();renderRanking();renderGames()}
 function renderPodium(){const box=document.getElementById('podium');box.innerHTML='';const r=ranking().slice(0,3), medals=['🥇','🥈','🥉'];if(!r.length){box.innerHTML='<p class="muted">Nenhum participante cadastrado.</p>';return}r.forEach((p,i)=>box.insertAdjacentHTML('beforeend',`<div class="podium-card"><div class="podium-medal">${medals[i]}</div><div class="podium-name">${esc(p.name)}</div><div class="podium-points">${pontosText(p.points)}</div><div class="small muted">${exatosText(p.exacts)}</div></div>`))}
-function renderRanking(){const body=document.getElementById('rankingBody');body.innerHTML='';const all=ranking(), visible=rankingExpanded?all:all.slice(0,5);const btn=document.getElementById('rankingToggleBtn');btn.style.display=all.length>5?'inline-block':'none';btn.textContent=rankingExpanded?'Mostrar top 5':'Ver ranking completo';visible.forEach((p,i)=>body.insertAdjacentHTML('beforeend',`<tr><td><span class="rank">${i+1}</span></td><td><strong>${esc(p.name)}</strong></td><td><strong>${p.points}</strong></td><td>${p.exacts}</td><td>${flagImg(p.champion,true)} ${esc(p.champion||'-')}</td><td class="${p.paid?'paid':'pending'}">${p.paid?'Pago':'Pendente'}</td></tr>`));if(!rankingExpanded&&all.length>5)body.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="muted small">Mostrando top 5 de ${all.length} ${plural(all.length,'participante','participantes')}. Clique em "Ver ranking completo" para expandir.</td></tr>`)} function toggleRanking(){rankingExpanded=!rankingExpanded;renderRanking()}
+function renderRanking(){const body=document.getElementById('rankingBody');body.innerHTML='';const all=ranking(), visible=rankingExpanded?all:all.slice(0,5);const btn=document.getElementById('rankingToggleBtn');btn.style.display=all.length>5?'inline-block':'none';btn.textContent=rankingExpanded?'Mostrar top 5':'Ver ranking completo';visible.forEach((p,i)=>body.insertAdjacentHTML('beforeend',`<tr><td><span class="rank">${i+1}</span></td><td><strong>${esc(p.name)}</strong></td><td><strong>${p.points}</strong></td><td>${p.exacts}</td><td>${flagImg(p.champion,true)} ${esc(p.champion||'-')} ${p.championBonus?'<span class="paid small">+ '+p.championBonus+'</span>':''}</td><td class="${p.paid?'paid':'pending'}">${p.paid?'Pago':'Pendente'}</td></tr>`));if(!rankingExpanded&&all.length>5)body.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="muted small">Mostrando top 5 de ${all.length} ${plural(all.length,'participante','participantes')}. Clique em "Ver ranking completo" para expandir.</td></tr>`)} function toggleRanking(){rankingExpanded=!rankingExpanded;renderRanking()}
 function renderGames(){
   const list=document.getElementById('gamesList');
   list.innerHTML='';
