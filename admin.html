@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Seguro - Bolão da Copa Só Resenha v1.9</title>
+  <title>Admin Seguro - Bolão da Copa Só Resenha v3.2 ESPN Batch</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--line:rgba(255,255,255,.14);--radius:18px}
     *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),var(--bg);color:var(--text)}
@@ -15,6 +15,16 @@
     .login-card{width:min(440px,100%);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 46px rgba(0,0,0,.35)}
     .login-card h1{font-size:30px;margin:0 0 8px}.login-card p{margin:0 0 14px}.login-error{color:var(--red);font-weight:900;min-height:22px;margin-top:10px}.login-ok{color:var(--green);font-weight:900}.admin-user{margin-left:auto;color:var(--muted);font-size:13px;align-self:center}.admin-user strong{color:var(--gold)}
 
+
+    .espn-preview-card{border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;background:rgba(0,0,0,.15)}
+    .espn-preview-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .espn-sync-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .espn-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(72,181,255,.16);border:1px solid var(--line);font-size:12px;color:#cdefff;font-weight:800}
+    .espn-badge.new{background:rgba(46,229,157,.14);color:#bfffe5}
+    .espn-badge.update{background:rgba(255,209,102,.14);color:#ffe7a3}
+    .espn-badge.live{background:rgba(255,107,107,.16);color:#ffd0d0}
+    .espn-checkbox{width:auto;transform:scale(1.2);accent-color:var(--gold);margin-right:8px}
+    .espn-results{margin-top:12px}
   </style>
 </head>
 <body>
@@ -39,10 +49,11 @@
       <div class="card span4"><h2>📊 Resumo</h2><p>Participantes: <strong id="countParticipants">0</strong></p><p>Jogos: <strong id="countGames">0</strong></p><p>Palpites preenchidos: <strong id="countGuesses">0</strong></p><p class="muted">Última atualização: <span id="lastUpdate">--</span></p></div>
       <div class="card span8"><h2>⚙️ Configurações</h2><div class="formgrid"><div class="field quarter"><label>Entrada inicial</label><input id="entryFee" type="number" min="0"></div><div class="field quarter"><label>Entrada tardia</label><input id="lateFee" type="number" min="0"></div><div class="field quarter"><label>Pontos campeão</label><input id="championPoints" type="number" min="0"></div><div class="field quarter"><label>PIX</label><input id="pix"></div></div><div class="actions"><button class="good" onclick="applyConfig()">Aplicar configurações</button></div></div>
       <div class="card span12"><h2>👥 Participantes</h2><div class="formgrid"><div class="field quarter"><label>Nome</label><input id="newName" placeholder="Novo participante"></div><div class="field quarter"><label>PIN</label><input id="newPin" placeholder="1234"></div><div class="field quarter"><label>Valor pago</label><input id="newPaidValue" type="number" value="50" min="0"></div><div class="field quarter"><label>Campeão</label><select id="newChampion" onchange="updateAddGamePreview()"></select><div class="select-preview" id="newChampionPreview">❔ Não definido</div></div></div><div class="actions"><button onclick="addParticipant()">Adicionar participante</button><button class="secondary" onclick="editSelectedParticipant()">Editar selecionado</button><button class="danger" onclick="removeSelectedParticipant()">Excluir selecionado</button></div><div style="overflow-x:auto;margin-top:12px"><table class="participants-table"><thead><tr><th></th><th>Participante</th><th>PIN</th><th>Status</th><th>Valor</th><th>Campeão</th></tr></thead><tbody id="participantsBody"></tbody></table></div><div id="participantEditPanel"></div></div>
+      <div class="card span12"><h2>⚽ ESPN Sync Seguro</h2><p class="muted small">Busca jogos da ESPN por data ou período. Se o jogo já existir, apenas vincula o ESPN ID e atualiza placar/status, mantendo os palpites intactos.</p><div class="formgrid"><div class="field quarter"><label>Data ESPN</label><input id="espnDate" type="date"></div><div class="field quarter"><label>Ação manual</label><button onclick="fetchEspnGames()">🔎 Buscar data</button></div></div><div class="actions"><button class="secondary" onclick="syncEspnRange(0,0,'Hoje')">Hoje</button><button class="secondary" onclick="syncEspnRange(-1,-1,'Ontem')">Ontem</button><button class="secondary" onclick="syncEspnRange(1,1,'Amanhã')">Amanhã</button><button class="secondary" onclick="syncEspnRange(0,6,'Próximos 7 dias')">Próximos 7 dias</button><button class="secondary" onclick="syncEspnRange(0,14,'Próximos 15 dias')">Próximos 15 dias</button></div><div class="actions"><button class="good" onclick="importSelectedEspn()">⬇️ Importar/Atualizar selecionados</button><button class="secondary" onclick="clearEspnPreview()">Limpar prévia</button></div><div id="espnSummary" class="muted small" style="margin-top:10px">Nenhuma busca realizada.</div><div id="espnResults" class="espn-results"></div></div>
       <div class="card span12"><h2>⚽ Jogos e Resultados</h2><div class="formgrid"><div class="field third"><label>Rodada</label><input id="gRound" placeholder="Rodada 20/06"></div><div class="field quarter"><label>Data</label><input id="gDate" type="date"></div><div class="field quarter"><label>Hora</label><input id="gTime" type="time"></div><div class="field third"><label>Seleção casa</label><select id="gHome" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gHomePreview">❔ Selecione</div></div><div class="field third"><label>Seleção fora</label><select id="gAway" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gAwayPreview">❔ Selecione</div></div></div><div class="actions"><button onclick="addGame()">Adicionar jogo</button></div><div id="gamesAdmin"></div></div>
     </section>
   </main>
-  <div class="footer">Admin Online • v2.1 Mobile • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
+  <div class="footer">Admin Online • v3.2 ESPN Batch Sync • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
   </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -57,6 +68,7 @@ let showAllFinished=false;
 let showAllPending=true;
 let selectedParticipantId=null;
 let editingParticipantId=null;
+let espnPreview=[];
 const countries=['','África do Sul','Alemanha','Arábia Saudita','Argélia','Argentina','Austrália','Áustria','Bélgica','Bósnia e Herzegovina','Brasil','Cabo Verde','Camarões','Canadá','Catar','Colômbia','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Holanda','Inglaterra','Irã','Iraque','Japão','Jordânia','Marrocos','México','Nigéria','Noruega','Nova Zelândia','Panamá','Paraguai','Portugal','RD Congo','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão'];
 const countryFlags={
   'África do Sul':'🇿🇦','Alemanha':'🇩🇪','Arábia Saudita':'🇸🇦','Argélia':'🇩🇿','Argentina':'🇦🇷','Austrália':'🇦🇺','Áustria':'🇦🇹','Bélgica':'🇧🇪','Bósnia e Herzegovina':'🇧🇦','Brasil':'🇧🇷','Cabo Verde':'🇨🇻','Camarões':'🇨🇲','Canadá':'🇨🇦','Catar':'🇶🇦','Colômbia':'🇨🇴','Coreia do Sul':'🇰🇷','Costa do Marfim':'🇨🇮','Croácia':'🇭🇷','Curaçao':'🇨🇼','Egito':'🇪🇬','Equador':'🇪🇨','Escócia':'🏴','Espanha':'🇪🇸','Estados Unidos':'🇺🇸','França':'🇫🇷','Gana':'🇬🇭','Haiti':'🇭🇹','Holanda':'🇳🇱','Inglaterra':'🏴','Irã':'🇮🇷','Iraque':'🇮🇶','Japão':'🇯🇵','Jordânia':'🇯🇴','Marrocos':'🇲🇦','México':'🇲🇽','Nigéria':'🇳🇬','Noruega':'🇳🇴','Nova Zelândia':'🇳🇿','Panamá':'🇵🇦','Paraguai':'🇵🇾','Portugal':'🇵🇹','RD Congo':'🇨🇩','República Tcheca':'🇨🇿','Senegal':'🇸🇳','Suécia':'🇸🇪','Suíça':'🇨🇭','Tunísia':'🇹🇳','Turquia':'🇹🇷','Uruguai':'🇺🇾','Uzbequistão':'🇺🇿'
@@ -128,7 +140,7 @@ async function logoutAdmin(){
 }
 
 async function loadFirebase(){setStatus('Carregando Firebase...');const doc=await BOLAO_REF.get();if(!doc.exists)throw new Error('Documento boloes/copa2026 não encontrado');const d=doc.data();data.config=d.config||data.config;data.participants=d.participants||[];data.games=d.games||[];render();setStatus('Firebase carregado ✅');}
-async function saveFirebase(){setStatus('Salvando...');data.ultimaAtualizacao=new Date().toISOString();await BOLAO_REF.set({...data,nome:'Bolão da Copa Só Resenha',versao:'admin_online_v1_6',ultimaAtualizacao:data.ultimaAtualizacao},{merge:true});setStatus('Salvo no Firebase ✅');toast('✅ Salvo no Firebase');render();}
+async function saveFirebase(){setStatus('Salvando...');data.ultimaAtualizacao=new Date().toISOString();await BOLAO_REF.set({...data,nome:'Bolão da Copa Só Resenha',versao:'admin_online_v3_2_espn_batch_sync',ultimaAtualizacao:data.ultimaAtualizacao},{merge:true});setStatus('Salvo no Firebase ✅');toast('✅ Salvo no Firebase');render();}
 function applyConfig(){data.config.entryFee=Number(document.getElementById('entryFee').value||0);data.config.lateFee=Number(document.getElementById('lateFee').value||0);data.config.championPoints=Number(document.getElementById('championPoints').value||9);data.config.pix=document.getElementById('pix').value.trim();render();toast('Configuração aplicada. Clique em Salvar tudo.');}
 function countGuesses(){let n=0;data.games.forEach(g=>Object.values(g.guesses||{}).forEach(gs=>{if(gs&&gs.home!==''&&gs.away!=='')n++}));return n}
 function render(){document.getElementById('countParticipants').textContent=data.participants.length;document.getElementById('countGames').textContent=data.games.length;document.getElementById('countGuesses').textContent=countGuesses();document.getElementById('lastUpdate').textContent=data.ultimaAtualizacao?new Date(data.ultimaAtualizacao).toLocaleString('pt-BR'):'--';document.getElementById('entryFee').value=data.config.entryFee||0;document.getElementById('lateFee').value=data.config.lateFee||0;document.getElementById('championPoints').value=data.config.championPoints||9;document.getElementById('pix').value=data.config.pix||'';const gh=document.getElementById('gHome');const ga=document.getElementById('gAway');const nc=document.getElementById('newChampion');if(gh&&!gh.innerHTML)gh.innerHTML=countryOptions('');if(ga&&!ga.innerHTML)ga.innerHTML=countryOptions('');if(nc&&!nc.innerHTML)nc.innerHTML=countryOptions('');updateAddGamePreview();renderParticipants();renderGames();}
@@ -269,9 +281,171 @@ function updGame(id,field,value){const g=data.games.find(x=>x.id===id);if(!g)ret
 async function saveGame(id){const g=data.games.find(x=>x.id===id);if(!g)return;await saveFirebase();toast(`✅ Jogo salvo: ${g.home} x ${g.away}`);}
 function addGame(){const round=document.getElementById('gRound').value.trim()||'Nova rodada';const date=document.getElementById('gDate').value;const time=document.getElementById('gTime').value;const home=document.getElementById('gHome').value.trim();const away=document.getElementById('gAway').value.trim();if(!date||!time||!home||!away){alert('Preencha data, hora e times.');return}const id='g_'+date.replaceAll('-','')+'_'+time.replace(':','')+'_'+slug(home)+'_'+slug(away);const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});data.games.push({id,round,date,time,home,away,homeScore:'',awayScore:'',guesses});['gRound','gDate','gTime'].forEach(id=>document.getElementById(id).value='');document.getElementById('gHome').value='';document.getElementById('gAway').value='';render();toast('Jogo adicionado. Clique em Salvar tudo.');}
 function removeGame(id){const g=data.games.find(x=>x.id===id);if(!g)return;if(!confirm(`Excluir jogo ${g.home} x ${g.away}?`))return;data.games=data.games.filter(x=>x.id!==id);render();toast('Jogo removido. Clique em Salvar tudo.');}
+
+const espnTeamMap={
+  'South Africa':'África do Sul','Germany':'Alemanha','Saudi Arabia':'Arábia Saudita','Algeria':'Argélia','Argentina':'Argentina','Australia':'Austrália','Austria':'Áustria','Belgium':'Bélgica','Bosnia and Herzegovina':'Bósnia e Herzegovina','Brazil':'Brasil','Cape Verde':'Cabo Verde','Cameroon':'Camarões','Canada':'Canadá','Qatar':'Catar','Colombia':'Colômbia','South Korea':'Coreia do Sul','Korea Republic':'Coreia do Sul','Ivory Coast':'Costa do Marfim','Côte d’Ivoire':'Costa do Marfim','Croatia':'Croácia','Curacao':'Curaçao','Curaçao':'Curaçao','Egypt':'Egito','Ecuador':'Equador','Scotland':'Escócia','Spain':'Espanha','United States':'Estados Unidos','USA':'Estados Unidos','France':'França','Ghana':'Gana','Haiti':'Haiti','Netherlands':'Holanda','England':'Inglaterra','Iran':'Irã','Iraq':'Iraque','Japan':'Japão','Jordan':'Jordânia','Morocco':'Marrocos','Mexico':'México','Nigeria':'Nigéria','Norway':'Noruega','New Zealand':'Nova Zelândia','Panama':'Panamá','Paraguay':'Paraguai','Portugal':'Portugal','DR Congo':'RD Congo','Congo DR':'RD Congo','Czechia':'República Tcheca','Czech Republic':'República Tcheca','Senegal':'Senegal','Sweden':'Suécia','Switzerland':'Suíça','Tunisia':'Tunísia','Turkey':'Turquia','Türkiye':'Turquia','Uruguay':'Uruguai','Uzbekistan':'Uzbequistão'
+};
+function normalizeTeamName(name){return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function mapEspnTeam(name){return espnTeamMap[String(name||'').trim()]||String(name||'').trim()}
+function datePartsSaoPaulo(iso){
+  const d=new Date(iso);
+  const dateParts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
+  const timeParts=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);
+  const get=(parts,type)=>parts.find(p=>p.type===type)?.value;
+  return {date:`${get(dateParts,'year')}-${get(dateParts,'month')}-${get(dateParts,'day')}`,time:`${get(timeParts,'hour')}:${get(timeParts,'minute')}`};
+}
+function yyyymmddFromInput(v){return String(v||'').replaceAll('-','')}
+function espnStatusLabel(item){
+  if(item.completed) return 'Finalizado';
+  if(item.state==='in') return 'Ao vivo';
+  return 'Agendado';
+}
+function extractEspnEvent(ev){
+  const comp=ev.competitions?.[0]||{};
+  const competitors=comp.competitors||[];
+  const homeC=competitors.find(c=>c.homeAway==='home')||competitors[0]||{};
+  const awayC=competitors.find(c=>c.homeAway==='away')||competitors[1]||{};
+  const home=mapEspnTeam(homeC.team?.displayName||homeC.team?.name||'');
+  const away=mapEspnTeam(awayC.team?.displayName||awayC.team?.name||'');
+  const dt=datePartsSaoPaulo(ev.date);
+  const status=ev.status?.type||comp.status?.type||{};
+  const state=status.state||'';
+  const completed=!!status.completed;
+  const hasScore=state!=='pre' || completed;
+  return {
+    espnId:String(ev.id||''),espnUid:String(ev.uid||''),home,away,date:dt.date,time:dt.time,
+    round:`Rodada ${dt.date.split('-').slice(1).reverse().join('/')}`,
+    homeScore:hasScore?String(homeC.score??''):'',awayScore:hasScore?String(awayC.score??''):'',
+    state,completed,statusName:status.name||'',statusDescription:status.description||'',shortDetail:status.shortDetail||'',
+    rawName:ev.name||'',homeLogo:homeC.team?.logo||'',awayLogo:awayC.team?.logo||''
+  };
+}
+function findExistingGameForEspn(item){
+  const byId=data.games.find(g=>String(g.espnId||'')===String(item.espnId));
+  if(byId) return byId;
+  const nh=normalizeTeamName(item.home), na=normalizeTeamName(item.away);
+  return data.games.find(g=>String(g.date||'')===item.date && normalizeTeamName(g.home)===nh && normalizeTeamName(g.away)===na);
+}
+function espnPreviewAction(item){
+  const existing=findExistingGameForEspn(item);
+  if(!existing) return {type:'new',text:'Novo jogo'};
+  const scoreDiff=(item.homeScore!==''&&item.awayScore!==''&&(String(existing.homeScore??'')!==String(item.homeScore)||String(existing.awayScore??'')!==String(item.awayScore)));
+  if(scoreDiff) return {type:'update',text:'Placar diferente'};
+  if(!existing.espnId) return {type:'update',text:'Vincular ESPN'};
+  return {type:'',text:'Já cadastrado'};
+}
+function getSaoPauloDateValue(offsetDays=0){
+  const now=new Date();
+  const base=new Date(now.getTime()+offsetDays*24*60*60*1000);
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(base);
+  const get=t=>p.find(x=>x.type===t)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+function addDaysToDateValue(dateValue,days){
+  const [y,m,d]=String(dateValue).split('-').map(Number);
+  const dt=new Date(Date.UTC(y,m-1,d+days,12,0,0));
+  return dt.toISOString().slice(0,10);
+}
+async function fetchEspnDate(dateValue){
+  const dates=yyyymmddFromInput(dateValue);
+  const url=`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dates}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error(`HTTP ${res.status} em ${dateValue}`);
+  const json=await res.json();
+  return (json.events||[]).map(extractEspnEvent).filter(x=>x.espnId&&x.home&&x.away).map(x=>({...x,espnSearchDate:dateValue}));
+}
+async function fetchEspnGames(){
+  const input=document.getElementById('espnDate');
+  const summary=document.getElementById('espnSummary');
+  const results=document.getElementById('espnResults');
+  if(!input.value){alert('Informe a data para buscar na ESPN.');return;}
+  summary.textContent='Buscando jogos na ESPN...';
+  results.innerHTML='';
+  try{
+    espnPreview=await fetchEspnDate(input.value);
+    renderEspnPreview();
+    summary.textContent=`ESPN retornou ${espnPreview.length} jogo(s) para ${input.value}. Confira antes de importar.`;
+  }catch(e){console.error(e);summary.textContent='Erro ao buscar ESPN: '+e.message;alert('Erro ao buscar ESPN: '+e.message);}
+}
+async function syncEspnRange(startOffset,endOffset,label){
+  const summary=document.getElementById('espnSummary');
+  const results=document.getElementById('espnResults');
+  summary.textContent=`Buscando ESPN: ${label}...`;
+  results.innerHTML='';
+  try{
+    const start=getSaoPauloDateValue(startOffset);
+    const totalDays=(endOffset-startOffset)+1;
+    const all=[];
+    const perDay=[];
+    for(let i=0;i<totalDays;i++){
+      const dateValue=addDaysToDateValue(start,i);
+      const games=await fetchEspnDate(dateValue);
+      perDay.push({date:dateValue,count:games.length});
+      all.push(...games);
+    }
+    const unique=[];
+    const seen=new Set();
+    all.forEach(item=>{if(!seen.has(item.espnId)){seen.add(item.espnId);unique.push(item);}});
+    espnPreview=unique.sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
+    renderEspnPreview();
+    const details=perDay.map(d=>`${fmt(d.date)}: ${d.count}`).join(' • ');
+    summary.innerHTML=`<strong>${esc(label)}</strong>: ${espnPreview.length} jogo(s) encontrado(s).<br><span class="muted">${esc(details)}</span><br>Confira a prévia antes de importar/atualizar.`;
+  }catch(e){console.error(e);summary.textContent='Erro ao buscar período ESPN: '+e.message;alert('Erro ao buscar período ESPN: '+e.message);}
+}
+function renderEspnPreview(){
+  const results=document.getElementById('espnResults');
+  if(!results)return;
+  if(!espnPreview.length){results.innerHTML='<div class="box muted">Nenhum jogo encontrado.</div>';return;}
+  results.innerHTML='';
+  espnPreview.forEach((item,idx)=>{
+    const existing=findExistingGameForEspn(item);
+    const action=espnPreviewAction(item);
+    const checked=action.type==='new'||action.type==='update'?'checked':'';
+    const statusClass=item.state==='in'?' live':(action.type?` ${action.type}`:'');
+    const score=(item.homeScore!==''&&item.awayScore!=='')?`${item.homeScore} x ${item.awayScore}`:'VS';
+    results.insertAdjacentHTML('beforeend',`<div class="espn-preview-card"><div class="espn-preview-head"><div><label style="display:flex;align-items:center;color:var(--text);font-size:15px;margin:0"><input class="espn-checkbox" type="checkbox" id="espn_${idx}" ${checked}><span class="espn-sync-title"><strong>${flagImg(item.home)} ${esc(item.home)} x ${flagImg(item.away)} ${esc(item.away)}</strong></span></label><div class="muted small" style="margin-top:7px">${fmt(item.date)} • ${esc(item.time)} • ESPN ID: ${esc(item.espnId)} • Placar: <strong>${esc(score)}</strong></div><div class="muted small">${esc(item.shortDetail||item.statusDescription||'')}</div></div><div><span class="espn-badge${statusClass}">${esc(espnStatusLabel(item))}</span><br><span class="espn-badge${action.type?` ${action.type}`:''}" style="margin-top:6px">${esc(action.text)}</span></div></div>${existing?`<div class="small muted" style="margin-top:8px">Encontrado no Firebase: ${esc(existing.home)} x ${esc(existing.away)} • ${fmt(existing.date)} ${esc(existing.time||'')}</div>`:''}</div>`);
+  });
+}
+function clearEspnPreview(){espnPreview=[];document.getElementById('espnResults').innerHTML='';document.getElementById('espnSummary').textContent='Prévia limpa.';}
+async function importSelectedEspn(){
+  if(!espnPreview.length){alert('Busque uma data na ESPN primeiro.');return;}
+  const selected=espnPreview.filter((_,idx)=>document.getElementById('espn_'+idx)?.checked);
+  if(!selected.length){alert('Selecione pelo menos um jogo.');return;}
+  if(!confirm(`Importar/atualizar ${selected.length} jogo(s) da ESPN e salvar no Firebase?`))return;
+  let added=0,updated=0;
+  selected.forEach(item=>{
+    let g=findExistingGameForEspn(item);
+    if(!g){
+      const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});
+      g={id:'g_espn_'+item.espnId,round:item.round,date:item.date,time:item.time,home:item.home,away:item.away,homeScore:item.homeScore,awayScore:item.awayScore,guesses};
+      data.games.push(g);added++;
+    }else{
+      updated++;
+      g.round=g.round||item.round;
+      g.date=item.date;g.time=item.time;
+      g.home=g.home||item.home;g.away=g.away||item.away;
+      if(item.homeScore!==''&&item.awayScore!==''){g.homeScore=item.homeScore;g.awayScore=item.awayScore;}
+      if(!g.guesses)g.guesses={};
+      data.participants.forEach(p=>{if(!g.guesses[p.id])g.guesses[p.id]={home:'',away:''};});
+    }
+    g.espnId=item.espnId;g.espnUid=item.espnUid;g.espnStatus=item.statusName;g.espnState=item.state;g.espnCompleted=item.completed;g.source='espn';
+  });
+  await saveFirebase();
+  renderEspnPreview();
+  toast(`✅ ESPN Sync: ${added} novo(s), ${updated} atualizado(s)`);
+  alert(`Sincronização ESPN concluída.\n\n${added} jogo(s) novo(s)\n${updated} jogo(s) atualizado(s)`);
+}
+function setDefaultEspnDate(){
+  const input=document.getElementById('espnDate');
+  if(input && !input.value){
+    input.value=getSaoPauloDateValue(0);
+  }
+}
+
 auth.onAuthStateChanged(user=>{
   if(user && ADMIN_EMAILS.includes((user.email||'').toLowerCase())){
     showAdminApp(user);
+    setDefaultEspnDate();
     loadFirebase().catch(e=>{console.error(e);setStatus('Erro ao carregar ❌');alert('Erro ao carregar Firebase: '+e.message)});
   }else{
     showLogin();
