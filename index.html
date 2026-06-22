@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bolão da Copa Só Resenha - Release 1.1.2 Live Fix</title>
+  <title>Bolão da Copa Só Resenha - Release 1.1.3 Live Compact</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--card2:#12385d;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--blue:#48b5ff;--line:rgba(255,255,255,.14);--shadow:0 18px 46px rgba(0,0,0,.30);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),radial-gradient(circle at bottom right,rgba(46,229,157,.18),transparent 34%),var(--bg);color:var(--text)}
@@ -48,10 +48,12 @@
 
 
     .live-match{border-color:rgba(255,107,107,.65);box-shadow:0 0 0 1px rgba(255,107,107,.18),var(--shadow)}
-    .live-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(255,107,107,.18);border:1px solid rgba(255,107,107,.45);color:#ffd0d0;font-size:12px;font-weight:900}
+    .live-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(255,107,107,.18);border:1px solid rgba(255,107,107,.45);color:#ffd0d0;font-size:12px;font-weight:900}.watch-link{display:inline-block;border-radius:13px;padding:11px 14px;background:rgba(255,255,255,.12);border:1px solid var(--line);color:var(--text);font-weight:900;text-decoration:none}
     .final-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(46,229,157,.14);border:1px solid rgba(46,229,157,.35);color:#caffea;font-size:12px;font-weight:900}
     .scheduled-badge{display:inline-block;border-radius:999px;padding:5px 8px;background:rgba(72,181,255,.14);border:1px solid rgba(72,181,255,.35);color:#d7efff;font-size:12px;font-weight:900}
 
+
+    .live-actions{justify-content:center}.live-clock{font-weight:900;color:#ffd0d0}.watch-link{margin-left:0}.live-match.compact-match .actions{justify-content:center}
   </style>
 </head>
 <body>
@@ -119,7 +121,7 @@
     <div class="actions"><button class="secondary" onclick="expandPublicGames('all')">Expandir todos</button><button class="secondary" onclick="collapsePublicGames('all')">Recolher todos</button><button class="secondary" onclick="expandPublicGames('pending')">Abrir pendentes</button><button class="secondary" onclick="collapsePublicGames('finished')">Ocultar concluídos</button></div><div id="gamesList"></div></div>
   <div class="card span12 public-only"><h2>Log</h2><div class="log" id="log">Carregando...</div></div>
 </section>
-<div class="footer">🏆 Bolão da Copa Só Resenha • index online v19 • Live Fix Próximo • Firebase ⚽</div>
+<div class="footer">🏆 Bolão da Copa Só Resenha • index online v23 • Ao vivo compacto + minuto • Firebase ⚽</div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -129,6 +131,8 @@ firebase.initializeApp(firebaseConfig); const db=firebase.firestore(); const BOL
 let data={config:{},participants:[],games:[]}, currentParticipant=null, filter='open', myTeamQuery='', publicFilter='all', publicTeamQuery='', rankingExpanded=false, expandedGames={}, publicSections={pendingList:true,finished:false};
 const countries={"Brasil":{code:"br",name:"Brasil"},"Haiti":{code:"ht",name:"Haiti"},"Estados Unidos":{code:"us",name:"Estados Unidos"},"Austrália":{code:"au",name:"Austrália"},"Escócia":{code:"gb-sct",name:"Escócia"},"Marrocos":{code:"ma",name:"Marrocos"},"Turquia":{code:"tr",name:"Turquia"},"Paraguai":{code:"py",name:"Paraguai"},"Argentina":{code:"ar",name:"Argentina"},"Espanha":{code:"es",name:"Espanha"},"França":{code:"fr",name:"França"},"Alemanha":{code:"de",name:"Alemanha"},"Portugal":{code:"pt",name:"Portugal"},"Inglaterra":{code:"gb-eng",name:"Inglaterra"},"Uruguai":{code:"uy",name:"Uruguai"},"Holanda":{code:"nl",name:"Holanda"},"Países Baixos":{code:"nl",name:"Países Baixos"},"Bélgica":{code:"be",name:"Bélgica"},"Croácia":{code:"hr",name:"Croácia"},"Japão":{code:"jp",name:"Japão"},"Coreia do Sul":{code:"kr",name:"Coreia do Sul"},"México":{code:"mx",name:"México"},"Canadá":{code:"ca",name:"Canadá"},"Catar":{code:"qa",name:"Catar"},"Arábia Saudita":{code:"sa",name:"Arábia Saudita"},"Senegal":{code:"sn",name:"Senegal"},"Gana":{code:"gh",name:"Gana"},"Suíça":{code:"ch",name:"Suíça"},"República Tcheca":{code:"cz",name:"República Tcheca"},"África do Sul":{code:"za",name:"África do Sul"},"Bósnia e Herzegovina":{code:"ba",name:"Bósnia e Herzegovina"},"Curaçao":{code:"cw",name:"Curaçao"},"Costa do Marfim":{code:"ci",name:"Costa do Marfim"},"Equador":{code:"ec",name:"Equador"},"Suécia":{code:"se",name:"Suécia"},"Tunísia":{code:"tn",name:"Tunísia"},"Egito":{code:"eg",name:"Egito"},"Irã":{code:"ir",name:"Irã"},"Nova Zelândia":{code:"nz",name:"Nova Zelândia"},"Cabo Verde":{code:"cv",name:"Cabo Verde"},"Iraque":{code:"iq",name:"Iraque"},"Noruega":{code:"no",name:"Noruega"},"Argélia":{code:"dz",name:"Argélia"},"Áustria":{code:"at",name:"Áustria"},"Jordânia":{code:"jo",name:"Jordânia"},"RD Congo":{code:"cd",name:"RD Congo"},"Uzbequistão":{code:"uz",name:"Uzbequistão"},"Colômbia":{code:"co",name:"Colômbia"},"Panamá":{code:"pa",name:"Panamá"}};
 function log(msg){document.getElementById('log').textContent=msg} function esc(t){return String(t??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')} function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} function fmt(d){if(!d)return'-';const[y,m,day]=String(d).split('-');return `${day}/${m}/${y}`} function flagImg(team,small=false){const c=countries[String(team||'').trim()];if(!c)return `<span class="flag ${small?'smallflag':''}" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15)">?</span>`;return `<img class="flag ${small?'smallflag':''}" src="https://flagcdn.com/w80/${c.code}.png" alt="Bandeira ${esc(c.name)}" onerror="this.outerHTML='🏳️'">`}
+function liveStreamUrl(){return String(data.config?.liveStreamUrl||'').trim()}
+function liveWatchButton(){const url=liveStreamUrl();return url?`<a class="watch-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">📺 Assistir transmissão</a>`:''}
 function gameTime(g){const rawDate=String(g.date||'').trim(), rawTime=String(g.time||'00:00').trim();let y,m,d;if(/^\d{4}-\d{2}-\d{2}$/.test(rawDate)){[y,m,d]=rawDate.split('-').map(Number)}else if(/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)){[d,m,y]=rawDate.split('/').map(Number)}else return Number.MAX_SAFE_INTEGER;const[hh,mm]=rawTime.split(':').map(Number);return new Date(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00-03:00`).getTime()}
 function nowMs(){return Date.now()+serverTimeOffsetMs}
 async function syncServerTime(){try{const ref=db.collection('system').doc('serverTime');await ref.set({ts:firebase.firestore.FieldValue.serverTimestamp(),clientAt:Date.now()},{merge:true});const snap=await ref.get();const ts=snap.data()?.ts;if(ts&&typeof ts.toMillis==='function'){serverTimeOffsetMs=ts.toMillis()-Date.now();serverTimeReady=true;return true}}catch(e){console.warn('Falha ao sincronizar horário do Firebase',e)}serverTimeReady=false;return false}
@@ -142,8 +146,15 @@ function isLiveGame(g){return espnState(g)==='in' || espnStatus(g).includes('IN_
 function isFinalGame(g){return !isLiveGame(g) && (g.espnCompleted===true || espnState(g)==='post' || espnStatus(g).includes('FULL_TIME') || espnStatus(g).includes('FINAL') || hasResultScore(g))}
 function isUpcomingGame(g){return !isLiveGame(g)&&!isFinalGame(g)&&gameTime(g)>=nowMs()}
 function isStalePendingGame(g){return !isLiveGame(g)&&!isFinalGame(g)&&gameTime(g)<nowMs()}
+function liveClockText(g){
+  const raw=String(g.espnDisplayClock||'').trim();
+  if(raw && raw !== "0'") return raw;
+  const clock=Number(g.espnClock||0);
+  if(clock>0) return `${Math.floor(clock)}'`;
+  return '';
+}
 function gameStatusLabel(g,isNext=false){
-  if(isLiveGame(g)) return '<span class="live-badge">🔴 Ao vivo</span>';
+  if(isLiveGame(g)){const c=liveClockText(g);return `<span class="live-badge">🔴 Ao vivo${c?' • '+esc(c):''}</span>`;}
   if(isFinalGame(g)) return '<span class="final-badge">✅ Finalizado</span>';
   if(isNext) return '<span class="scheduled-badge">⏳ Próximo jogo</span>';
   if(isStalePendingGame(g)) return '<span class="scheduled-badge">⏳ Aguardando atualização</span>';
@@ -205,7 +216,7 @@ function renderGames(){
 function renderLiveSection(list,games){
   if(!games.length) return;
   list.insertAdjacentHTML('beforeend',`<div class="game-section-head"><h3>🔴 Jogos ao vivo <span class="games-count">(${games.length})</span></h3></div>`);
-  games.forEach(g=>renderPublicGameCard(list,g,true,false));
+  games.forEach(g=>renderPublicGameCard(list,g,false,false));
 }
 
 function sectionButton(key, openLabel, closeLabel){
@@ -317,7 +328,7 @@ function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
   const started=isStarted(g)||live||finished;
   const score=(hasResultScore(g)||live)?`${g.homeScore||0} x ${g.awayScore||0}`:'VS';
   const expanded=forceExpanded ? (expandedGames[g.id]!==undefined ? expandedGames[g.id] : true) : (expandedGames[g.id]!==undefined ? expandedGames[g.id] : false);
-  const btnText=expanded?'Recolher detalhes':'Ver palpites/detalhes';
+  const btnText=expanded?'Recolher detalhes':(isLiveGame(g)?'📊 Ver palpites':'Ver palpites/detalhes');
   const cardClass=`match ${isNext?'next-match':''} ${live?'live-match':''} ${expanded?'':'compact-match'}`;
 
   const details=expanded?`<div class="match-details">
@@ -347,8 +358,9 @@ function renderPublicGameCard(list,g,forceExpanded=false,isNext=false){
         <div class="score">${score}</div>
         <div class="team">${flagImg(g.away)}<span>${esc(g.away)}</span></div>
       </div>
-      <div class="actions">
+      <div class="actions ${live?'live-actions':''}">
         <button class="secondary" onclick="toggleGameDetails('${g.id}')">${btnText}</button>
+        ${live?liveWatchButton():''}
       </div>
       ${details}
     </div>
