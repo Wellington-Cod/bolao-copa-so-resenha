@@ -500,7 +500,12 @@ async function updatePendingEspnGames(){
       if(r.finalized)finalized++;
     });
     await saveFirebase();
-    espnPreview=all.sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
+    espnPreview=all
+      .filter(item=>{
+        const action=espnPreviewAction(item);
+        return action.type==='new' || action.type==='update' || item.state==='in';
+      })
+      .sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
     renderEspnPreview();
     summary.innerHTML=`<strong>Jogos pendentes atualizados.</strong><br>${updated} atualizado(s) • ${scoreUpdated} placar(es) alterado(s) • ${finalized} finalizado(s) • ${notFound} não encontrado(s)`;
     alert(`Atualização dos pendentes concluída.\n\n${updated} jogo(s) atualizado(s)\n${scoreUpdated} placar(es) alterado(s)\n${finalized} jogo(s) finalizado(s)\n${notFound} não encontrado(s)`);
