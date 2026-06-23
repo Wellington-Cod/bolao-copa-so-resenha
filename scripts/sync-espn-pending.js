@@ -158,7 +158,25 @@ async function main() {
     return;
   }
 
-  const dates = [...new Set(pending.map(g => g.date).filter(Boolean))];
+const datesSet = new Set();
+
+pending.forEach(g => {
+  if (!g.date) return;
+
+  const d = new Date(`${g.date}T12:00:00`);
+
+  const prev = new Date(d);
+  prev.setDate(prev.getDate() - 1);
+
+  const next = new Date(d);
+  next.setDate(next.getDate() + 1);
+
+  datesSet.add(prev.toISOString().slice(0, 10));
+  datesSet.add(d.toISOString().slice(0, 10));
+  datesSet.add(next.toISOString().slice(0, 10));
+});
+
+const dates = [...datesSet];
   console.log(`Atualizando ${pending.length} jogo(s) pendente(s) em ${dates.length} data(s): ${dates.join(', ')}`);
 
   const allEspn = [];
