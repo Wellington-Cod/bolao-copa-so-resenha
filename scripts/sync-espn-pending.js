@@ -158,7 +158,7 @@ async function main() {
     return;
   }
 
-const datesSet = new Set();
+const datesSet = new Set();  
 
 pending.forEach(g => {
   if (!g.date) return;
@@ -177,7 +177,10 @@ pending.forEach(g => {
 });
 
 const dates = [...datesSet];
-  console.log(`Atualizando ${pending.length} jogo(s) pendente(s) em ${dates.length} data(s): ${dates.join(', ')}`);
+
+console.log('HOTFIX DATAS V2 ATIVO');
+console.log('Datas calculadas:', dates);
+console.log(`Atualizando ${pending.length} jogo(s) pendente(s) em ${dates.length} data(s): ${dates.join(', ')}`);
 
   const allEspn = [];
   for (const date of dates) {
