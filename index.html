@@ -132,7 +132,7 @@
   <div class="card span12 public-only"><h2>👤 Perfil dos Participantes</h2><p class="muted small">Clique em um participante para ver o desempenho detalhado no bolão.</p><div id="profileButtons" class="profile-list"></div><div id="profileDetails"></div></div>
   <div class="card span7 public-only"><div class="topbar"><h2 id="rankingTitle">🏆 Ranking</h2><button class="secondary" id="rankingToggleBtn" onclick="toggleRanking()">Ver ranking completo</button></div><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Participante</th><th>Pontos</th><th>Exatos</th><th>Campeão</th><th>Pagamento</th></tr></thead><tbody id="rankingBody"></tbody></table></div></div>
   <div class="card span5 public-only"><h2>📜 Regras</h2><ul><li>Cravou o placar: <strong>6 pontos</strong>.</li><li>Acertou o vencedor: <strong>3 pontos</strong>.</li><li>Acertou o empate, mas não cravou o placar: <strong>1 ponto</strong>.</li><li>Acertou campeão: <strong>9 pontos</strong>.</li><li>Palpites podem ser alterados até <strong>15 minutos antes</strong> da partida.</li><li>Desempate: mais placares exatos.</li><li>Depois: acerto do campeão.</li><li>Persistindo empate: divide o valor. A porrada fica só na resenha. 😂</li></ul></div>
-  <div class="card span12 public-only"><h2>⚽ Rodada / Jogos <span class="games-count" id="publicGamesCount"></span></h2>
+  <div class="card span12 public-only" id="secaoJogos"><h2>⚽ Rodada / Jogos <span class="games-count" id="publicGamesCount"></span></h2>
     <div class="actions">
       <button class="secondary" data-public-filter="all" onclick="setPublicFilter('all')">Todos</button>
       <button class="secondary" data-public-filter="today" onclick="setPublicFilter('today')">Hoje</button>
@@ -640,6 +640,58 @@ function renderMyGames(){
 async function saveGuess(gameId){try{if(!serverTimeReady)await syncServerTime();const g=data.games.find(x=>x.id===gameId);if(!g)return;if(isLocked(g)){alert('Este jogo já está bloqueado. O limite é 15 minutos antes da partida.');return}const home=document.getElementById('h_'+gameId).value, away=document.getElementById('a_'+gameId).value;if(home===''||away===''){alert('Preencha os dois placares.');return}if(!/^\d+$/.test(home)||!/^\d+$/.test(away)){alert('Informe apenas números inteiros no placar.');return}if(!g.guesses)g.guesses={};const wasFilled=hasGuess(g,currentParticipant.id);g.guesses[currentParticipant.id]={home:String(Number(home)),away:String(Number(away)),updatedAt:new Date(nowMs()).toISOString(),updatedBy:currentParticipant.id};await BOLAO_REF.update({games:data.games,ultimaAtualizacao:new Date(nowMs()).toISOString()});log(`Palpite ${wasFilled?'atualizado':'salvo'}: ${currentParticipant.name} • ${g.home} ${Number(home)} x ${Number(away)} ${g.away}`);showToast(wasFilled?'✅ Palpite atualizado com sucesso':'✅ Palpite salvo com sucesso');render();renderMyGames()}catch(e){console.error(e);log('Erro ao salvar palpite: '+e.message);alert('Erro ao salvar. Veja o log.')}}
 async function copyPix(){try{await navigator.clipboard.writeText(data.config.pix||'');alert('PIX copiado: '+(data.config.pix||''))}catch(e){alert('PIX: '+(data.config.pix||''))}}
 loadBolao();
+
+(function setupSmartScrollToGames(){
+  const STORAGE_KEY = 'bolao_public_scroll_y';
+  const AUTO_SCROLL_DONE_KEY = 'bolao_auto_scroll_done';
+
+  function isPalpiteiroMode(){
+    return document.body.classList.contains('palpiteiro-mode');
+  }
+
+  function saveScrollPosition(){
+    if (isPalpiteiroMode()) return;
+    try {
+      sessionStorage.setItem(STORAGE_KEY, String(window.scrollY || 0));
+    } catch (e) {}
+  }
+
+  let scrollSaveTimer = null;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(saveScrollPosition, 150);
+  }, { passive: true });
+
+  setTimeout(() => {
+    if (isPalpiteiroMode()) return;
+
+    const hasHash = !!window.location.hash;
+    if (hasHash) return;
+
+    let savedY = 0;
+    try {
+      savedY = Number(sessionStorage.getItem(STORAGE_KEY) || 0);
+    } catch (e) {}
+
+    if (savedY > 120) {
+      window.scrollTo({ top: savedY, behavior: 'smooth' });
+      return;
+    }
+
+    let autoDone = false;
+    try {
+      autoDone = sessionStorage.getItem(AUTO_SCROLL_DONE_KEY) === 'true';
+    } catch (e) {}
+
+    if (!autoDone) {
+      const jogos = document.getElementById('secaoJogos');
+      if (jogos) {
+        jogos.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try { sessionStorage.setItem(AUTO_SCROLL_DONE_KEY, 'true'); } catch (e) {}
+      }
+    }
+  }, 1500);
+})();
 </script>
 </body>
 </html>
