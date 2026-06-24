@@ -201,11 +201,34 @@ console.log(`Atualizando ${pending.length} jogo(s) pendente(s) em ${dates.length
       console.log(`Não encontrado na ESPN: ${g.home} x ${g.away} (${g.date}) espnId=${g.espnId}`);
       return;
     }
+const beforeHome = String(g.homeScore ?? '');
+const beforeAway = String(g.awayScore ?? '');
+const beforeState = String(g.espnState ?? '');
+const beforeClock = String(g.espnDisplayClock ?? '');
 
-    const r = applyEspnItemToGame(g, item, participants);
-    updated++;
-    if (r.scoreChanged) scoreUpdated++;
-    if (r.finalized) finalized++;
+const r = applyEspnItemToGame(g, item, participants);
+updated++;
+
+console.log(
+  `SYNC: ${g.home} ${beforeHome || '-'}x${beforeAway || '-'} -> ${g.homeScore || '-'}x${g.awayScore || '-'} ${g.away} | ` +
+  `Status: ${beforeState || '-'} ${beforeClock || '-'} -> ${g.espnState || '-'} ${g.espnDisplayClock || '-'} | ` +
+  `ESPN ID ${g.espnId}`
+);
+
+if (r.scoreChanged) {
+  scoreUpdated++;
+  console.log(
+    `PLACAR ALTERADO: ${g.home} ${beforeHome || '-'}x${beforeAway || '-'} -> ${g.homeScore}x${g.awayScore} ${g.away}`
+  );
+}
+
+if (r.finalized) {
+  finalized++;
+  console.log(
+    `FINALIZADO: ${g.home} ${g.homeScore} x ${g.awayScore} ${g.away} | ESPN ID ${g.espnId}`
+  );
+}
+   
   });
 
   await ref.set({
