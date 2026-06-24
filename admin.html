@@ -47,7 +47,15 @@
   <main class="wrap">
     <section class="grid">
       <div class="card span4"><h2>📊 Resumo</h2><p>Participantes: <strong id="countParticipants">0</strong></p><p>Jogos: <strong id="countGames">0</strong></p><p>Palpites preenchidos: <strong id="countGuesses">0</strong></p><p class="muted">Última atualização: <span id="lastUpdate">--</span></p><p class="muted">Campeão oficial: <strong id="officialChampionLabel">Não definido</strong></p></div>
-      <div class="card span8"><h2>🚀 Operação do dia</h2><p class="muted small">Área principal para sincronizar jogos, atualizar placares e ajustar o link da transmissão.</p><div class="formgrid"><div class="field quarter"><label>Data ESPN</label><input id="espnDate" type="date"></div><div class="field quarter"><label>Ação manual</label><button onclick="fetchEspnGames()">🔎 Buscar data</button></div><div class="field half"><label>📺 Link da transmissão ao vivo</label><input id="liveStreamUrl" placeholder="https://www.youtube.com/@CazeTV ou link da live atual"><p class="muted small" style="margin:6px 0 0">Esse link aparece na área pública somente quando houver jogo ao vivo.</p></div></div><div class="actions"><button class="secondary" onclick="syncEspnRange(0,0,'Hoje')">Hoje</button><button class="secondary" onclick="syncEspnRange(-1,-1,'Ontem')">Ontem</button><button class="secondary" onclick="syncEspnRange(1,1,'Amanhã')">Amanhã</button><button class="secondary" onclick="syncEspnRange(0,6,'Próximos 7 dias')">Próximos 7 dias</button><button class="secondary" onclick="syncEspnRange(0,14,'Próximos 15 dias')">Próximos 15 dias</button><button class="good" onclick="updatePendingEspnGames()">🔄 Atualizar jogos pendentes</button><button class="good" onclick="applyConfig()">💾 Salvar transmissão/config.</button></div><div class="actions"><button class="good" onclick="importSelectedEspn()">⬇️ Importar/Atualizar selecionados</button><button class="secondary" onclick="clearEspnPreview()">Limpar prévia</button></div><div id="espnSummary" class="muted small" style="margin-top:10px">Nenhuma busca realizada.</div><div id="espnResults" class="espn-results"></div></div>
+      <div class="card span8"><h2>🚀 Operação do dia</h2><p class="muted small">Área principal para sincronizar jogos, atualizar placares e ajustar o link da transmissão.</p><div class="formgrid"><div class="field quarter"><label>Data ESPN</label><input id="espnDate" type="date"></div><div class="field quarter"><label>Ação manual</label><button onclick="fetchEspnGames()">🔎 Buscar data</button></div><div class="field half"><label>📺 Link da transmissão ao vivo</label><input id="liveStreamUrl" placeholder="https://www.youtube.com/@CazeTV ou link da live atual"><p class="muted small" style="margin:6px 0 0">Esse link aparece na área pública somente quando houver jogo ao vivo.</p></div></div><div class="actions"><button class="secondary" onclick="syncEspnRange(0,0,'Hoje')">Hoje</button><button class="secondary" onclick="syncEspnRange(-1,-1,'Ontem')">Ontem</button><button class="secondary" onclick="syncEspnRange(1,1,'Amanhã')">Amanhã</button><button class="secondary" onclick="syncEspnRange(0,6,'Próximos 7 dias')">Próximos 7 dias</button><button class="secondary" onclick="syncEspnRange(0,14,'Próximos 15 dias')">Próximos 15 dias</button><button class="good" onclick="updatePendingEspnGames()">🔄 Atualizar jogos pendentes</button><button class="good" onclick="applyConfig()">💾 Salvar transmissão/config.</button></div><div class="box" style="margin-top:10px">
+  <h3 style="margin-top:0">🤖 Auto ESPN</h3>
+  <p class="muted small" style="margin:0 0 8px">Atualização silenciosa enquanto o Admin estiver aberto. Com jogo ao vivo: a cada 2 min. Sem jogo ao vivo: a cada 15 min.</p>
+  <div class="actions">
+    <button id="autoEspnToggleBtn" class="secondary" onclick="toggleAutoEspn()">▶️ Ligar Auto ESPN</button>
+    <button class="secondary" onclick="runAutoEspnNow()">Rodar agora silencioso</button>
+  </div>
+  <p class="muted small" id="autoEspnStatus" style="margin:8px 0 0">Auto ESPN desligado.</p>
+</div><div class="actions"><button class="good" onclick="importSelectedEspn()">⬇️ Importar/Atualizar selecionados</button><button class="secondary" onclick="clearEspnPreview()">Limpar prévia</button></div><div id="espnSummary" class="muted small" style="margin-top:10px">Nenhuma busca realizada.</div><div id="espnResults" class="espn-results"></div></div>
       <div class="card span12"><h2>⚽ Jogos e Resultados</h2><div class="formgrid"><div class="field third"><label>Rodada</label><input id="gRound" placeholder="Rodada 20/06"></div><div class="field quarter"><label>Data</label><input id="gDate" type="date"></div><div class="field quarter"><label>Hora</label><input id="gTime" type="time"></div><div class="field third"><label>Seleção casa</label><select id="gHome" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gHomePreview">❔ Selecione</div></div><div class="field third"><label>Seleção fora</label><select id="gAway" onchange="updateAddGamePreview()"></select><div class="select-preview" id="gAwayPreview">❔ Selecione</div></div></div><div class="actions"><button onclick="addGame()">Adicionar jogo</button></div><div id="gamesAdmin"></div></div>
       <div class="card span12"><h2>🏆 Campeão do Bolão</h2><p class="muted small">Defina apenas após a final. Ao salvar, a área pública soma os pontos de campeão no ranking.</p><div class="formgrid"><div class="field third"><label>Campeão oficial</label><select id="officialChampion" onchange="data.config.officialChampion=this.value;render()"></select><div class="select-preview" id="officialChampionPreview">🏆 Ainda não definido</div></div><div class="field third"><label>Pontos por acerto do campeão</label><input id="championPoints" type="number" min="0"></div></div><div class="actions"><button class="good" onclick="applyConfig()">Salvar campeão/configurações</button><button class="secondary" onclick="clearOfficialChampion()">Limpar campeão oficial</button></div></div>
       <div class="card span12"><h2>⚙️ Configurações do Bolão</h2><p class="muted small">Informações usadas com pouca frequência.</p><div class="formgrid"><div class="field quarter"><label>Entrada inicial</label><input id="entryFee" type="number" min="0"></div><div class="field quarter"><label>Entrada tardia</label><input id="lateFee" type="number" min="0"></div><div class="field quarter"><label>PIX</label><input id="pix"></div></div><div class="actions"><button class="good" onclick="applyConfig()">Aplicar configurações</button></div></div>
@@ -70,6 +78,13 @@ let showAllPending=true;
 let selectedParticipantId=null;
 let editingParticipantId=null;
 let espnPreview=[];
+let autoEspnEnabled=false;
+let autoEspnTimer=null;
+let autoEspnRunning=false;
+let autoEspnLastRunAt=null;
+let autoEspnNextRunAt=null;
+const AUTO_ESPN_LIVE_MS=2*60*1000;
+const AUTO_ESPN_IDLE_MS=15*60*1000;
 const countries=['','África do Sul','Alemanha','Arábia Saudita','Argélia','Argentina','Austrália','Áustria','Bélgica','Bósnia e Herzegovina','Brasil','Cabo Verde','Camarões','Canadá','Catar','Colômbia','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Holanda','Inglaterra','Irã','Iraque','Japão','Jordânia','Marrocos','México','Nigéria','Noruega','Nova Zelândia','Panamá','Paraguai','Portugal','RD Congo','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão'];
 const countryFlags={
   'África do Sul':'🇿🇦','Alemanha':'🇩🇪','Arábia Saudita':'🇸🇦','Argélia':'🇩🇿','Argentina':'🇦🇷','Austrália':'🇦🇺','Áustria':'🇦🇹','Bélgica':'🇧🇪','Bósnia e Herzegovina':'🇧🇦','Bósnia-Herzegovina':'🇧🇦','Brasil':'🇧🇷','Cabo Verde':'🇨🇻','Camarões':'🇨🇲','Canadá':'🇨🇦','Catar':'🇶🇦','Colômbia':'🇨🇴','Coreia do Sul':'🇰🇷','Costa do Marfim':'🇨🇮','Croácia':'🇭🇷','Curaçao':'🇨🇼','Egito':'🇪🇬','Equador':'🇪🇨','Escócia':'🏴','Espanha':'🇪🇸','Estados Unidos':'🇺🇸','França':'🇫🇷','Gana':'🇬🇭','Haiti':'🇭🇹','Holanda':'🇳🇱','Inglaterra':'🏴','Irã':'🇮🇷','Iraque':'🇮🇶','Japão':'🇯🇵','Jordânia':'🇯🇴','Marrocos':'🇲🇦','México':'🇲🇽','Nigéria':'🇳🇬','Noruega':'🇳🇴','Nova Zelândia':'🇳🇿','Panamá':'🇵🇦','Paraguai':'🇵🇾','Portugal':'🇵🇹','RD Congo':'🇨🇩','República Tcheca':'🇨🇿','Senegal':'🇸🇳','Suécia':'🇸🇪','Suíça':'🇨🇭','Tunísia':'🇹🇳','Turquia':'🇹🇷','Uruguai':'🇺🇾','Uzbequistão':'🇺🇿'
@@ -474,42 +489,184 @@ function applyEspnItemToGame(g,item){
     finalized: !wasCompleted && !!g.espnCompleted
   };
 }
-async function updatePendingEspnGames(){
+
+function buildEspnDatesForPending(pending){
+  const datesSet=new Set();
+  pending.forEach(g=>{
+    if(!g.date)return;
+    const d=new Date(`${g.date}T12:00:00`);
+    const prev=new Date(d);prev.setDate(prev.getDate()-1);
+    const next=new Date(d);next.setDate(next.getDate()+1);
+    datesSet.add(prev.toISOString().slice(0,10));
+    datesSet.add(d.toISOString().slice(0,10));
+    datesSet.add(next.toISOString().slice(0,10));
+  });
+  return [...datesSet].sort();
+}
+
+async function syncPendingEspnGamesSilent(options={}){
+  const silent=options.silent===true;
   const summary=document.getElementById('espnSummary');
   const results=document.getElementById('espnResults');
   const pending=data.games.filter(g=>g.espnId && g.espnCompleted!==true);
+
+  if(!pending.length){
+    if(!silent)alert('Nenhum jogo pendente com vínculo ESPN encontrado.');
+    return {updated:0,scoreUpdated:0,finalized:0,notFound:0,pending:0};
+  }
+
+  if(summary)summary.textContent=silent?'Auto ESPN: atualizando silenciosamente...':'Atualizando jogos pendentes pela ESPN...';
+  if(results && !silent)results.innerHTML='';
+
+  const dates=buildEspnDatesForPending(pending);
+  const all=[];
+
+  for(const dateValue of dates){
+    const games=await fetchEspnDate(dateValue);
+    all.push(...games);
+  }
+
+  const byId=new Map(all.map(item=>[String(item.espnId),item]));
+  let updated=0,scoreUpdated=0,finalized=0,notFound=0;
+
+  pending.forEach(g=>{
+    let item=byId.get(String(g.espnId));
+
+    if(!item){
+      const nh=normalizeTeamName(g.home),na=normalizeTeamName(g.away);
+      item=all.find(i=>String(i.date||'')===String(g.date||'') && normalizeTeamName(i.home)===nh && normalizeTeamName(i.away)===na);
+    }
+
+    if(!item){notFound++;return;}
+
+    const r=applyEspnItemToGame(g,item);
+    updated++;
+    if(r.scoreChanged)scoreUpdated++;
+    if(r.finalized)finalized++;
+  });
+
+  await saveFirebase();
+
+  espnPreview=all
+    .filter(item=>{
+      const action=espnPreviewAction(item);
+      return action.type==='new'||action.type==='update'||item.state==='in';
+    })
+    .sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
+
+  renderEspnPreview();
+
+  if(summary){
+    summary.innerHTML=`<strong>${silent?'Auto ESPN executado.':'Jogos pendentes atualizados.'}</strong><br>${updated} atualizado(s) • ${scoreUpdated} placar(es) alterado(s) • ${finalized} finalizado(s) • ${notFound} não encontrado(s)`;
+  }
+
+  return {updated,scoreUpdated,finalized,notFound,pending:pending.length};
+}
+
+function hasLiveGameAdmin(){
+  return data.games.some(g=>g.espnId && g.espnCompleted!==true && isLiveGameAdmin(g));
+}
+
+function updateAutoEspnStatus(extra=''){
+  const el=document.getElementById('autoEspnStatus');
+  const btn=document.getElementById('autoEspnToggleBtn');
+
+  if(btn){
+    btn.textContent=autoEspnEnabled?'⏸️ Desligar Auto ESPN':'▶️ Ligar Auto ESPN';
+    btn.className=autoEspnEnabled?'good':'secondary';
+  }
+
+  if(!el)return;
+
+  if(!autoEspnEnabled){
+    el.textContent='Auto ESPN desligado.';
+    return;
+  }
+
+  const last=autoEspnLastRunAt?autoEspnLastRunAt.toLocaleTimeString('pt-BR'):'--';
+  const next=autoEspnNextRunAt?autoEspnNextRunAt.toLocaleTimeString('pt-BR'):'calculando...';
+  const mode=hasLiveGameAdmin()?'modo ao vivo: 2 min':'modo espera: 15 min';
+
+  el.textContent=`🟢 Auto ESPN ligado • ${mode} • Última: ${last} • Próxima: ${next}${extra?' • '+extra:''}`;
+}
+
+function scheduleNextAutoEspn(delayMs){
+  clearTimeout(autoEspnTimer);
+  if(!autoEspnEnabled)return;
+  autoEspnNextRunAt=new Date(Date.now()+delayMs);
+  updateAutoEspnStatus();
+  autoEspnTimer=setTimeout(runAutoEspnTick,delayMs);
+}
+
+async function runAutoEspnTick(){
+  if(!autoEspnEnabled)return;
+
+  if(autoEspnRunning){
+    scheduleNextAutoEspn(60*1000);
+    return;
+  }
+
+  autoEspnRunning=true;
+  updateAutoEspnStatus('executando...');
+
+  try{
+    const result=await syncPendingEspnGamesSilent({silent:true});
+    autoEspnLastRunAt=new Date();
+    const hasLive=hasLiveGameAdmin();
+    const nextDelay=hasLive?AUTO_ESPN_LIVE_MS:AUTO_ESPN_IDLE_MS;
+    updateAutoEspnStatus(`ok: ${result.scoreUpdated} placar(es), ${result.finalized} finalizado(s)`);
+    scheduleNextAutoEspn(nextDelay);
+  }catch(e){
+    console.error(e);
+    autoEspnLastRunAt=new Date();
+    updateAutoEspnStatus('erro: '+e.message);
+    scheduleNextAutoEspn(2*60*1000);
+  }finally{
+    autoEspnRunning=false;
+  }
+}
+
+function toggleAutoEspn(){
+  autoEspnEnabled=!autoEspnEnabled;
+
+  if(autoEspnEnabled){
+    runAutoEspnTick();
+  }else{
+    clearTimeout(autoEspnTimer);
+    autoEspnTimer=null;
+    autoEspnNextRunAt=null;
+    updateAutoEspnStatus();
+  }
+}
+
+async function runAutoEspnNow(){
+  try{
+    const result = await syncPendingEspnGamesSilent({silent:true});
+
+    updateAutoEspnStatus(
+      `execução manual: ${result.scoreUpdated} placar(es), ${result.finalized} finalizado(s)`
+    );
+
+  }catch(e){
+    console.error(e);
+    updateAutoEspnStatus('erro: ' + e.message);
+  }
+}
+
+async function updatePendingEspnGames(){
+  const pending=data.games.filter(g=>g.espnId && g.espnCompleted!==true);
   if(!pending.length){alert('Nenhum jogo pendente com vínculo ESPN encontrado.');return;}
   if(!confirm(`Atualizar ${pending.length} jogo(s) pendente(s) pela ESPN e salvar no Firebase?`))return;
-  summary.textContent='Atualizando jogos pendentes pela ESPN...';
-  results.innerHTML='';
+
   try{
-    const dates=[...new Set(pending.map(g=>g.date).filter(Boolean))];
-    const all=[];
-    for(const dateValue of dates){
-      const games=await fetchEspnDate(dateValue);
-      all.push(...games);
-    }
-    const byId=new Map(all.map(item=>[String(item.espnId),item]));
-    let updated=0, scoreUpdated=0, finalized=0, notFound=0;
-    pending.forEach(g=>{
-      const item=byId.get(String(g.espnId));
-      if(!item){notFound++;return;}
-      const r=applyEspnItemToGame(g,item);
-      updated++;
-      if(r.scoreChanged)scoreUpdated++;
-      if(r.finalized)finalized++;
-    });
-    await saveFirebase();
-    espnPreview=all
-      .filter(item=>{
-        const action=espnPreviewAction(item);
-        return action.type==='new' || action.type==='update' || item.state==='in';
-      })
-      .sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));
-    renderEspnPreview();
-    summary.innerHTML=`<strong>Jogos pendentes atualizados.</strong><br>${updated} atualizado(s) • ${scoreUpdated} placar(es) alterado(s) • ${finalized} finalizado(s) • ${notFound} não encontrado(s)`;
-    alert(`Atualização dos pendentes concluída.\n\n${updated} jogo(s) atualizado(s)\n${scoreUpdated} placar(es) alterado(s)\n${finalized} jogo(s) finalizado(s)\n${notFound} não encontrado(s)`);
-  }catch(e){console.error(e);summary.textContent='Erro ao atualizar pendentes: '+e.message;alert('Erro ao atualizar pendentes: '+e.message);}
+    const r=await syncPendingEspnGamesSilent({silent:false});
+    alert(`Atualização dos pendentes concluída.\n\n${r.updated} jogo(s) atualizado(s)\n${r.scoreUpdated} placar(es) alterado(s)\n${r.finalized} jogo(s) finalizado(s)\n${r.notFound} não encontrado(s)`);
+  }catch(e){
+    console.error(e);
+    const summary=document.getElementById('espnSummary');
+    if(summary)summary.textContent='Erro ao atualizar pendentes: '+e.message;
+    alert('Erro ao atualizar pendentes: '+e.message);
+  }
 }
 async function importSelectedEspn(){
   if(!espnPreview.length){alert('Busque uma data na ESPN primeiro.');return;}
