@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Seguro - Bolão da Copa Só Resenha v3.6.2 Status Isento</title>
+  <title>Admin Seguro - Bolão da Copa Só Resenha v3.6.3 Pênaltis</title>
   <style>
     :root{--bg:#06192c;--card:#0e2a46;--text:#f7fbff;--muted:#bdd5ea;--gold:#ffd166;--green:#2ee59d;--red:#ff6b6b;--line:rgba(255,255,255,.14);--radius:18px}
     *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(72,181,255,.25),transparent 34%),var(--bg);color:var(--text)}
@@ -25,6 +25,8 @@
     .espn-badge.live{background:rgba(255,107,107,.16);color:#ffd0d0}
     .espn-checkbox{width:auto;transform:scale(1.2);accent-color:var(--gold);margin-right:8px}
     .espn-results{margin-top:12px}
+
+    .penalty-note{display:inline-block;margin-left:6px;border-radius:999px;padding:4px 8px;background:rgba(255,209,102,.13);border:1px solid rgba(255,209,102,.34);color:#ffe7a3;font-size:12px;font-weight:900}
   </style>
 </head>
 <body>
@@ -47,9 +49,9 @@
   <main class="wrap">
     <section class="grid">
       <div class="card span4"><h2>📊 Resumo</h2><p>Participantes: <strong id="countParticipants">0</strong></p><p>Jogos: <strong id="countGames">0</strong></p><p>Palpites preenchidos: <strong id="countGuesses">0</strong></p><p class="muted">Última atualização: <span id="lastUpdate">--</span></p><p class="muted">Campeão oficial: <strong id="officialChampionLabel">Não definido</strong></p></div>
-      <div class="card span8"><h2>🚀 Operação do dia</h2><p class="muted small">Área principal para sincronizar jogos, atualizar placares e ajustar o link da transmissão.</p><div class="formgrid"><div class="field quarter"><label>Data ESPN</label><input id="espnDate" type="date"></div><div class="field quarter"><label>Ação manual</label><button onclick="fetchEspnGames()">🔎 Buscar data</button></div><div class="field half"><label>📺 Link da transmissão ao vivo</label><input id="liveStreamUrl" placeholder="https://www.youtube.com/@CazeTV ou link da live atual"><p class="muted small" style="margin:6px 0 0">Esse link aparece na área pública somente quando houver jogo ao vivo.</p></div></div><div class="actions"><button class="secondary" onclick="syncEspnRange(0,0,'Hoje')">Hoje</button><button class="secondary" onclick="syncEspnRange(-1,-1,'Ontem')">Ontem</button><button class="secondary" onclick="syncEspnRange(1,1,'Amanhã')">Amanhã</button><button class="secondary" onclick="syncEspnRange(0,6,'Próximos 7 dias')">Próximos 7 dias</button><button class="secondary" onclick="syncEspnRange(0,14,'Próximos 15 dias')">Próximos 15 dias</button><button class="good" onclick="updatePendingEspnGames()">🔄 Atualizar jogos pendentes</button><button class="good" onclick="applyConfig()">💾 Salvar transmissão/config.</button></div><div class="box" style="margin-top:10px">
+      <div class="card span8"><h2>🚀 Operação do dia</h2><p class="muted small">Área principal para sincronizar jogos, atualizar placares e ajustar o link da transmissão.</p><div class="formgrid"><div class="field quarter"><label>Data ESPN</label><input id="espnDate" type="date"></div><div class="field quarter"><label>Ação manual</label><button onclick="fetchEspnGames()">🔎 Buscar data</button></div><div class="field half"><label>📺 Link da transmissão ao vivo</label><input id="liveStreamUrl" placeholder="https://www.youtube.com/@CazeTV ou link da live atual"><p class="muted small" style="margin:6px 0 0">Esse link aparece na área pública somente quando houver jogo ao vivo.</p></div></div><div class="actions"><button class="secondary" onclick="syncEspnRange(0,0,'Hoje')">Hoje</button><button class="secondary" onclick="syncEspnRange(-1,-1,'Ontem')">Ontem</button><button class="secondary" onclick="syncEspnRange(1,1,'Amanhã')">Amanhã</button><button class="secondary" onclick="syncEspnRange(0,6,'Próximos 7 dias')">Próximos 7 dias</button><button class="secondary" onclick="syncEspnRange(0,14,'Próximos 15 dias')">Próximos 15 dias</button><button class="good" onclick="updatePendingEspnGames()">🔄 Atualizar jogos ESPN</button><button class="good" onclick="applyConfig()">💾 Salvar transmissão/config.</button></div><div class="box" style="margin-top:10px">
   <h3 style="margin-top:0">🤖 Auto ESPN</h3>
-  <p class="muted small" style="margin:0 0 8px">Atualização silenciosa enquanto o Admin estiver aberto. Com jogo ao vivo: a cada 2 min. Sem jogo ao vivo: a cada 15 min.</p>
+  <p class="muted small" style="margin:0 0 8px">Atualização silenciosa enquanto o Admin estiver aberto. Com jogo ao vivo: a cada 2 min. Sem jogo ao vivo: a cada 15 min. Também revisa finalizados sem pênaltis.</p>
   <div class="actions">
     <button id="autoEspnToggleBtn" class="secondary" onclick="toggleAutoEspn()">▶️ Ligar Auto ESPN</button>
     <button class="secondary" onclick="runAutoEspnNow()">Rodar agora silencioso</button>
@@ -62,7 +64,7 @@
       <div class="card span12"><h2>👥 Participantes</h2><p class="muted small">Área de manutenção eventual dos participantes.</p><div class="formgrid"><div class="field quarter"><label>Nome</label><input id="newName" placeholder="Novo participante"></div><div class="field quarter"><label>PIN</label><input id="newPin" placeholder="1234"></div><div class="field quarter"><label>Valor pago</label><input id="newPaidValue" type="number" value="50" min="0"></div><div class="field quarter"><label>Campeão</label><select id="newChampion" onchange="updateAddGamePreview()"></select><div class="select-preview" id="newChampionPreview">❔ Não definido</div></div></div><div class="actions"><button onclick="addParticipant()">Adicionar participante</button><button class="secondary" onclick="editSelectedParticipant()">Editar selecionado</button><button class="danger" onclick="removeSelectedParticipant()">Excluir selecionado</button></div><div style="overflow-x:auto;margin-top:12px"><table class="participants-table"><thead><tr><th></th><th>Participante</th><th>PIN</th><th>Status</th><th>Valor</th><th>Campeão</th></tr></thead><tbody id="participantsBody"></tbody></table></div><div id="participantEditPanel"></div></div>
     </section>
   </main>
-  <div class="footer">Admin Online • v3.6.2 Status Isento • Layout Operacional + Campeão • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
+  <div class="footer">Admin Online • v3.6.3 Pênaltis • Layout Operacional + Campeão • Auth + Bandeiras • Firebase</div><div class="toast" id="toast">Salvo</div>
   </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -127,6 +129,66 @@ function esc(t){return String(t??'').replaceAll('&','&amp;').replaceAll('<','&lt
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function setStatus(msg){document.getElementById('status').textContent=msg}
 function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+
+function hasPenaltyScore(g){return g && g.homePenaltyScore!=='' && g.awayPenaltyScore!=='' && g.homePenaltyScore!==undefined && g.awayPenaltyScore!==undefined}
+function penaltyText(g){return hasPenaltyScore(g)?` <span class="penalty-note">Pênaltis: ${esc(g.homePenaltyScore)} x ${esc(g.awayPenaltyScore)}</span>`:''}
+function penaltyPlain(g){return hasPenaltyScore(g)?` • Pênaltis: ${g.homePenaltyScore} x ${g.awayPenaltyScore}`:''}
+function extractPenaltyCandidate(v){
+  if(v===undefined||v===null||v==='')return '';
+  if(typeof v==='number' && Number.isFinite(v))return String(v);
+  if(typeof v==='string'){
+    const clean=v.trim();
+    if(/^\d+$/.test(clean))return clean;
+    const m=clean.match(/(?:^|\b)(\d+)\s*(?:pen|pens|pên|penal|shoot)/i);
+    if(m)return m[1];
+  }
+  return '';
+}
+function findPenaltyValueDeep(obj,depth=0){
+  if(!obj||depth>4)return '';
+  if(Array.isArray(obj)){
+    for(const item of obj){const out=findPenaltyValueDeep(item,depth+1);if(out!=='')return out;}
+    return '';
+  }
+  if(typeof obj!=='object')return '';
+  for(const [k,v] of Object.entries(obj)){
+    const key=String(k||'').toLowerCase();
+    if(key.includes('shootout')||key.includes('penalt')||key==='pkScore'.toLowerCase()||key.includes('penalties')||key.includes('penalty')){
+      const direct=extractPenaltyCandidate(v);
+      if(direct!=='')return direct;
+      const nested=findPenaltyValueDeep(v,depth+1);
+      if(nested!=='')return nested;
+    }
+  }
+  const lines=Array.isArray(obj.linescores)?obj.linescores:[];
+  for(const l of lines){
+    const label=String(l?.displayName||l?.periodName||l?.type||l?.name||'').toLowerCase();
+    if(label.includes('pen')||label.includes('shoot')){
+      const out=extractPenaltyCandidate(l?.value??l?.score??l?.displayValue);
+      if(out!=='')return out;
+    }
+  }
+  return '';
+}
+function extractPenaltyFromCompetitor(c){
+  const direct=[c?.shootoutScore,c?.penaltyShootoutScore,c?.penaltyScore,c?.penalties,c?.penaltyKicks,c?.pkScore,c?.shootout?.score,c?.penaltyShootout?.score];
+  for(const v of direct){const out=extractPenaltyCandidate(v);if(out!=='')return out;}
+  return findPenaltyValueDeep(c);
+}
+function extractPenaltyPairFromText(text,homeC,awayC){
+  const t=String(text||'');
+  if(!t)return null;
+  let m=t.match(/\((\d+)\s*(?:pen|pens|pên|penal)[^)]*\).*?\((\d+)\s*(?:pen|pens|pên|penal)[^)]*\)/i);
+  if(m)return {home:String(m[1]),away:String(m[2])};
+  m=t.match(/(?:penalties|penaltis|pênaltis|shootout)[^0-9]*(\d+)\s*[-x]\s*(\d+)/i) || t.match(/(\d+)\s*[-x]\s*(\d+)\s*(?:on|nos|em)?\s*(?:penalties|penaltis|pênaltis|shootout)/i);
+  if(m){
+    const a=String(m[1]),b=String(m[2]);
+    if(homeC?.winner===true && awayC?.winner!==true) return Number(a)>=Number(b)?{home:a,away:b}:{home:b,away:a};
+    if(awayC?.winner===true && homeC?.winner!==true) return Number(a)>=Number(b)?{home:b,away:a}:{home:a,away:b};
+    return {home:a,away:b};
+  }
+  return null;
+}
 function slug(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||Date.now()}
 
 function showAdminApp(user){
@@ -164,7 +226,7 @@ async function logoutAdmin(){
 }
 
 async function loadFirebase(){setStatus('Carregando Firebase...');const doc=await BOLAO_REF.get();if(!doc.exists)throw new Error('Documento boloes/copa2026 não encontrado');const d=doc.data();data.config=d.config||data.config;data.participants=d.participants||[];data.games=d.games||[];render();setStatus('Firebase carregado ✅');}
-async function saveFirebase(){setStatus('Salvando...');data.ultimaAtualizacao=new Date().toISOString();await BOLAO_REF.set({...data,nome:'Bolão da Copa Só Resenha',versao:'admin_online_v3_6_2_status_isento_prod_hotfix',ultimaAtualizacao:data.ultimaAtualizacao},{merge:true});setStatus('Salvo no Firebase ✅');toast('✅ Salvo no Firebase');render();}
+async function saveFirebase(){setStatus('Salvando...');data.ultimaAtualizacao=new Date().toISOString();await BOLAO_REF.set({...data,nome:'Bolão da Copa Só Resenha',versao:'admin_online_v3_6_3_penaltis_prod_hotfix',ultimaAtualizacao:data.ultimaAtualizacao},{merge:true});setStatus('Salvo no Firebase ✅');toast('✅ Salvo no Firebase');render();}
 function applyConfig(){data.config.entryFee=Number(document.getElementById('entryFee')?.value||0);data.config.lateFee=Number(document.getElementById('lateFee')?.value||0);data.config.championPoints=Number(document.getElementById('championPoints')?.value||9);data.config.pix=(document.getElementById('pix')?.value||'').trim();data.config.liveStreamUrl=(document.getElementById('liveStreamUrl')?.value||'').trim();data.config.officialChampion=(document.getElementById('officialChampion')?.value||'').trim();render();toast('Configuração aplicada. Clique em Salvar tudo.');}
 function clearOfficialChampion(){const el=document.getElementById('officialChampion');if(el)el.value='';data.config.officialChampion='';render();toast('Campeão oficial removido. Clique em Salvar tudo.');}
 function countGuesses(){let n=0;data.games.forEach(g=>Object.values(g.guesses||{}).forEach(gs=>{if(gs&&gs.home!==''&&gs.away!=='')n++}));return n}
@@ -273,7 +335,7 @@ function renderLiveGroup(box,games){
 function renderLiveCard(box,g){
   const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
   const clock=g.espnDisplayClock?` • ${esc(g.espnDisplayClock)}`:'';
-  box.insertAdjacentHTML('beforeend',`<div class="box" style="border-color:rgba(255,107,107,.55)"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • <strong style="color:var(--red)">Ao vivo${clock}</strong> • Placar: <strong>${esc(homeScore||'0')} x ${esc(awayScore||'0')}</strong></span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
+  box.insertAdjacentHTML('beforeend',`<div class="box" style="border-color:rgba(255,107,107,.55)"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • <strong style="color:var(--red)">Ao vivo${clock}</strong> • Placar: <strong>${esc(homeScore||'0')} x ${esc(awayScore||'0')}</strong>${penaltyText(g)}</span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
 }
 function renderPendingGroup(box,games){
   box.insertAdjacentHTML('beforeend',`<h3 style="cursor:pointer" onclick="togglePending()">${showAllPending?'▼':'▶'} ⚽ Jogos pendentes <span class="pill">${games.length}</span></h3>`);
@@ -283,7 +345,7 @@ function renderPendingGroup(box,games){
 }
 function togglePending(){showAllPending=!showAllPending;renderGames();}
 function renderPendingCard(box,g){
-  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>Pendente</strong></span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
+  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>Pendente</strong>${penaltyText(g)}</span></div><button class="secondary" onclick="editPending('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
 }
 function editPending(id){
   const holder=document.getElementById('edit_'+id);if(!holder)return;
@@ -310,7 +372,7 @@ function toggleFinished(){showAllFinished=!showAllFinished;renderGames();}
 function showAllFinishedRows(){showAllFinished=true;const box=document.getElementById('gamesAdmin');box.innerHTML='';const live=[...data.games].filter(isLiveGameAdmin).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));const pending=[...data.games].filter(g=>!isLiveGameAdmin(g)&&!isFinished(g)).sort((a,b)=>gameDateTimeValue(a)-gameDateTimeValue(b));const finished=[...data.games].filter(g=>!isLiveGameAdmin(g)&&isFinished(g)).sort((a,b)=>gameDateTimeValue(b)-gameDateTimeValue(a));renderLiveGroup(box,live);renderPendingGroup(box,pending);box.insertAdjacentHTML('beforeend',`<h3>▼ 🏁 Jogos concluídos <span class="pill">${finished.length}</span></h3>`);finished.forEach(g=>renderFinishedCard(box,g));}
 function renderFinishedCard(box,g){
   const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
-  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>${esc(homeScore)} x ${esc(awayScore)}</strong></span></div><button class="secondary" onclick="editFinished('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
+  box.insertAdjacentHTML('beforeend',`<div class="box"><div class="game-summary"><div><strong>${flagImg(g.home)} ${esc(g.home)} x ${flagImg(g.away)} ${esc(g.away)}</strong><br><span class="muted">${esc(g.round||'Rodada')} • ${fmt(g.date)} • ${esc(g.time)} • Resultado: <strong>${esc(homeScore)} x ${esc(awayScore)}</strong>${penaltyText(g)}</span></div><button class="secondary" onclick="editFinished('${g.id}')">Editar</button></div><div id="edit_${g.id}"></div></div>`);
 }
 function editFinished(id){
   const holder=document.getElementById('edit_'+id);if(!holder)return;
@@ -321,13 +383,13 @@ function renderGameCard(box,g,compact=false,editable=true){
   box.insertAdjacentHTML('beforeend',`<div class="box">${renderGameEditor(g)}</div>`);
 }
 function renderGameEditor(g){
-  const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');
-  return `<div class="formgrid"><div class="field quarter"><label>Rodada</label><input value="${esc(g.round||'')}" onchange="updGame('${g.id}','round',this.value)"></div><div class="field quarter"><label>Data</label><input type="date" value="${esc(g.date||'')}" onchange="updGame('${g.id}','date',this.value)"></div><div class="field quarter"><label>Hora</label><input type="time" value="${esc(g.time||'')}" onchange="updGame('${g.id}','time',this.value)"></div><div class="field quarter"><label>Status/Resultado</label><span class="pill">${isLiveGameAdmin(g)?'🔴 Ao vivo '+(g.espnDisplayClock||''):homeScore!==''&&awayScore!==''?esc(homeScore)+' x '+esc(awayScore):'Pendente'}</span></div><div class="field quarter"><label>Seleção casa</label><select onchange="updGame('${g.id}','home',this.value)">${countryOptions(g.home||'')}</select><div class="select-preview">${teamPreview(g.home)}</div></div><div class="field quarter"><label>Seleção fora</label><select onchange="updGame('${g.id}','away',this.value)">${countryOptions(g.away||'')}</select><div class="select-preview">${teamPreview(g.away)}</div></div><div class="field quarter"><label>Placar casa</label><input class="score-input" type="number" min="0" step="1" value="${esc(homeScore)}" onchange="updGame('${g.id}','homeScore',this.value)"></div><div class="field quarter"><label>Placar fora</label><input class="score-input" type="number" min="0" step="1" value="${esc(awayScore)}" onchange="updGame('${g.id}','awayScore',this.value)"></div></div><div class="actions"><button class="good" onclick="saveGame('${g.id}')">💾 Salvar jogo</button><button class="danger" onclick="removeGame('${g.id}')">Excluir jogo</button></div><details><summary>Ver palpites</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Participante</th><th>Palpite</th></tr></thead><tbody>${data.participants.map(p=>{const gs=g.guesses?.[p.id]||{home:'',away:''};return `<tr><td>${esc(p.name)}</td><td>${gs.home!==''&&gs.away!==''?esc(gs.home)+' x '+esc(gs.away):'-'}</td></tr>`}).join('')}</tbody></table></div></details>`;
+  const homeScore=(g.homeScore??'');const awayScore=(g.awayScore??'');const homePenaltyScore=(g.homePenaltyScore??'');const awayPenaltyScore=(g.awayPenaltyScore??'');
+  return `<div class="formgrid"><div class="field quarter"><label>Rodada</label><input value="${esc(g.round||'')}" onchange="updGame('${g.id}','round',this.value)"></div><div class="field quarter"><label>Data</label><input type="date" value="${esc(g.date||'')}" onchange="updGame('${g.id}','date',this.value)"></div><div class="field quarter"><label>Hora</label><input type="time" value="${esc(g.time||'')}" onchange="updGame('${g.id}','time',this.value)"></div><div class="field quarter"><label>Status/Resultado</label><span class="pill">${isLiveGameAdmin(g)?'🔴 Ao vivo '+(g.espnDisplayClock||''):homeScore!==''&&awayScore!==''?esc(homeScore)+' x '+esc(awayScore)+penaltyPlain(g):'Pendente'}</span></div><div class="field quarter"><label>Seleção casa</label><select onchange="updGame('${g.id}','home',this.value)">${countryOptions(g.home||'')}</select><div class="select-preview">${teamPreview(g.home)}</div></div><div class="field quarter"><label>Seleção fora</label><select onchange="updGame('${g.id}','away',this.value)">${countryOptions(g.away||'')}</select><div class="select-preview">${teamPreview(g.away)}</div></div><div class="field quarter"><label>Placar casa</label><input class="score-input" type="number" min="0" step="1" value="${esc(homeScore)}" onchange="updGame('${g.id}','homeScore',this.value)"></div><div class="field quarter"><label>Placar fora</label><input class="score-input" type="number" min="0" step="1" value="${esc(awayScore)}" onchange="updGame('${g.id}','awayScore',this.value)"></div><div class="field quarter"><label>Pênaltis casa</label><input class="score-input" type="number" min="0" step="1" value="${esc(homePenaltyScore)}" onchange="updGame('${g.id}','homePenaltyScore',this.value)"></div><div class="field quarter"><label>Pênaltis fora</label><input class="score-input" type="number" min="0" step="1" value="${esc(awayPenaltyScore)}" onchange="updGame('${g.id}','awayPenaltyScore',this.value)"></div></div><div class="actions"><button class="good" onclick="saveGame('${g.id}')">💾 Salvar jogo</button><button class="danger" onclick="removeGame('${g.id}')">Excluir jogo</button></div><details><summary>Ver palpites</summary><div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Participante</th><th>Palpite</th></tr></thead><tbody>${data.participants.map(p=>{const gs=g.guesses?.[p.id]||{home:'',away:''};return `<tr><td>${esc(p.name)}</td><td>${gs.home!==''&&gs.away!==''?esc(gs.home)+' x '+esc(gs.away):'-'}</td></tr>`}).join('')}</tbody></table></div></details>`;
 }
 function fmt(d){if(!d)return'-';const parts=String(d).split('-');return parts.length===3?`${parts[2]}/${parts[1]}/${parts[0]}`:esc(d)}
 function updGame(id,field,value){const g=data.games.find(x=>x.id===id);if(!g)return;g[field]=value;toast('Alteração local. Clique em Salvar jogo ou Salvar tudo.');}
 async function saveGame(id){const g=data.games.find(x=>x.id===id);if(!g)return;await saveFirebase();toast(`✅ Jogo salvo: ${g.home} x ${g.away}`);}
-function addGame(){const round=document.getElementById('gRound').value.trim()||'Nova rodada';const date=document.getElementById('gDate').value;const time=document.getElementById('gTime').value;const home=document.getElementById('gHome').value.trim();const away=document.getElementById('gAway').value.trim();if(!date||!time||!home||!away){alert('Preencha data, hora e times.');return}const id='g_'+date.replaceAll('-','')+'_'+time.replace(':','')+'_'+slug(home)+'_'+slug(away);const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});data.games.push({id,round,date,time,home,away,homeScore:'',awayScore:'',guesses});['gRound','gDate','gTime'].forEach(id=>document.getElementById(id).value='');document.getElementById('gHome').value='';document.getElementById('gAway').value='';render();toast('Jogo adicionado. Clique em Salvar tudo.');}
+function addGame(){const round=document.getElementById('gRound').value.trim()||'Nova rodada';const date=document.getElementById('gDate').value;const time=document.getElementById('gTime').value;const home=document.getElementById('gHome').value.trim();const away=document.getElementById('gAway').value.trim();if(!date||!time||!home||!away){alert('Preencha data, hora e times.');return}const id='g_'+date.replaceAll('-','')+'_'+time.replace(':','')+'_'+slug(home)+'_'+slug(away);const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});data.games.push({id,round,date,time,home,away,homeScore:'',awayScore:'',homePenaltyScore:'',awayPenaltyScore:'',guesses});['gRound','gDate','gTime'].forEach(id=>document.getElementById(id).value='');document.getElementById('gHome').value='';document.getElementById('gAway').value='';render();toast('Jogo adicionado. Clique em Salvar tudo.');}
 function removeGame(id){const g=data.games.find(x=>x.id===id);if(!g)return;if(!confirm(`Excluir jogo ${g.home} x ${g.away}?`))return;data.games=data.games.filter(x=>x.id!==id);render();toast('Jogo removido. Clique em Salvar tudo.');}
 
 const espnTeamMap={
@@ -363,10 +425,18 @@ function extractEspnEvent(ev){
   const displayClock=String(statusObj.displayClock||'');
   const clock=Number(statusObj.clock||0);
   const hasScore=state!=='pre' || completed;
+  let homePenaltyScore=extractPenaltyFromCompetitor(homeC);
+  let awayPenaltyScore=extractPenaltyFromCompetitor(awayC);
+  if(homePenaltyScore===''||awayPenaltyScore===''){
+    const textBlob=[ev.name,ev.shortName,ev.summary,ev.description,comp.note,comp.details,comp.status?.type?.detail,comp.status?.type?.shortDetail,status.detail,status.shortDetail,status.description,status.name,statusObj.detail,statusObj.shortDetail,statusObj.description].filter(Boolean).join(' | ');
+    const pair=extractPenaltyPairFromText(textBlob,homeC,awayC);
+    if(pair){homePenaltyScore=pair.home;awayPenaltyScore=pair.away;}
+  }
   return {
     espnId:String(ev.id||''),espnUid:String(ev.uid||''),home,away,date:dt.date,time:dt.time,
     round:`Rodada ${dt.date.split('-').slice(1).reverse().join('/')}`,
     homeScore:hasScore?String(homeC.score??''):'',awayScore:hasScore?String(awayC.score??''):'',
+    homePenaltyScore,awayPenaltyScore,
     state,completed,statusName:status.name||'',statusDescription:status.description||'',shortDetail:status.shortDetail||'',
     clock,displayClock,
     rawName:ev.name||'',homeLogo:homeC.team?.logo||'',awayLogo:awayC.team?.logo||''
@@ -381,7 +451,7 @@ function findExistingGameForEspn(item){
 function espnPreviewAction(item){
   const existing=findExistingGameForEspn(item);
   if(!existing) return {type:'new',text:'Novo jogo'};
-  const scoreDiff=(item.homeScore!==''&&item.awayScore!==''&&(String(existing.homeScore??'')!==String(item.homeScore)||String(existing.awayScore??'')!==String(item.awayScore)));
+  const scoreDiff=(item.homeScore!==''&&item.awayScore!==''&&(String(existing.homeScore??'')!==String(item.homeScore)||String(existing.awayScore??'')!==String(item.awayScore))) || (item.homePenaltyScore!==''&&item.awayPenaltyScore!==''&&(String(existing.homePenaltyScore??'')!==String(item.homePenaltyScore)||String(existing.awayPenaltyScore??'')!==String(item.awayPenaltyScore)));
   if(scoreDiff) return {type:'update',text:'Placar diferente'};
   if(!existing.espnId) return {type:'update',text:'Vincular ESPN'};
   return {type:'',text:'Já cadastrado'};
@@ -455,14 +525,17 @@ function renderEspnPreview(){
     const checked=action.type==='new'||action.type==='update'?'checked':'';
     const statusClass=item.state==='in'?' live':(action.type?` ${action.type}`:'');
     const score=(item.homeScore!==''&&item.awayScore!=='')?`${item.homeScore} x ${item.awayScore}`:'VS';
+    const penalty=(item.homePenaltyScore!==''&&item.awayPenaltyScore!=='')?` • Pênaltis: ${item.homePenaltyScore} x ${item.awayPenaltyScore}`:'';
     const clockText=item.state==='in'&&item.displayClock?` • ${item.displayClock}`:'';
-    results.insertAdjacentHTML('beforeend',`<div class="espn-preview-card"><div class="espn-preview-head"><div><label style="display:flex;align-items:center;color:var(--text);font-size:15px;margin:0"><input class="espn-checkbox" type="checkbox" id="espn_${idx}" ${checked}><span class="espn-sync-title"><strong>${flagImg(item.home)} ${esc(item.home)} x ${flagImg(item.away)} ${esc(item.away)}</strong></span></label><div class="muted small" style="margin-top:7px">${fmt(item.date)} • ${esc(item.time)} • ESPN ID: ${esc(item.espnId)} • Placar: <strong>${esc(score)}</strong></div><div class="muted small">${esc((item.shortDetail||item.statusDescription||'')+clockText)}</div></div><div><span class="espn-badge${statusClass}">${esc(espnStatusLabel(item))}</span><br><span class="espn-badge${action.type?` ${action.type}`:''}" style="margin-top:6px">${esc(action.text)}</span></div></div>${existing?`<div class="small muted" style="margin-top:8px">Encontrado no Firebase: ${esc(existing.home)} x ${esc(existing.away)} • ${fmt(existing.date)} ${esc(existing.time||'')}</div>`:''}</div>`);
+    results.insertAdjacentHTML('beforeend',`<div class="espn-preview-card"><div class="espn-preview-head"><div><label style="display:flex;align-items:center;color:var(--text);font-size:15px;margin:0"><input class="espn-checkbox" type="checkbox" id="espn_${idx}" ${checked}><span class="espn-sync-title"><strong>${flagImg(item.home)} ${esc(item.home)} x ${flagImg(item.away)} ${esc(item.away)}</strong></span></label><div class="muted small" style="margin-top:7px">${fmt(item.date)} • ${esc(item.time)} • ESPN ID: ${esc(item.espnId)} • Placar: <strong>${esc(score)}</strong>${esc(penalty)}</div><div class="muted small">${esc((item.shortDetail||item.statusDescription||'')+clockText)}</div></div><div><span class="espn-badge${statusClass}">${esc(espnStatusLabel(item))}</span><br><span class="espn-badge${action.type?` ${action.type}`:''}" style="margin-top:6px">${esc(action.text)}</span></div></div>${existing?`<div class="small muted" style="margin-top:8px">Encontrado no Firebase: ${esc(existing.home)} x ${esc(existing.away)} • ${fmt(existing.date)} ${esc(existing.time||'')}</div>`:''}</div>`);
   });
 }
 function clearEspnPreview(){espnPreview=[];document.getElementById('espnResults').innerHTML='';document.getElementById('espnSummary').textContent='Prévia limpa.';}
 function applyEspnItemToGame(g,item){
   const beforeHome=String(g.homeScore??'');
   const beforeAway=String(g.awayScore??'');
+  const beforeHomePenalty=String(g.homePenaltyScore??'');
+  const beforeAwayPenalty=String(g.awayPenaltyScore??'');
   const wasCompleted=!!g.espnCompleted;
   g.round=g.round||item.round;
   g.date=item.date;
@@ -472,6 +545,10 @@ function applyEspnItemToGame(g,item){
   if(item.homeScore!==''&&item.awayScore!==''){
     g.homeScore=item.homeScore;
     g.awayScore=item.awayScore;
+  }
+  if(item.homePenaltyScore!==''&&item.awayPenaltyScore!==''){
+    g.homePenaltyScore=item.homePenaltyScore;
+    g.awayPenaltyScore=item.awayPenaltyScore;
   }
   if(!g.guesses)g.guesses={};
   data.participants.forEach(p=>{if(!g.guesses[p.id])g.guesses[p.id]={home:'',away:''};});
@@ -485,7 +562,7 @@ function applyEspnItemToGame(g,item){
   g.source='espn';
   g.espnLastSyncAt=new Date().toISOString();
   return {
-    scoreChanged: beforeHome!==String(g.homeScore??'') || beforeAway!==String(g.awayScore??''),
+    scoreChanged: beforeHome!==String(g.homeScore??'') || beforeAway!==String(g.awayScore??'') || beforeHomePenalty!==String(g.homePenaltyScore??'') || beforeAwayPenalty!==String(g.awayPenaltyScore??''),
     finalized: !wasCompleted && !!g.espnCompleted
   };
 }
@@ -508,14 +585,14 @@ async function syncPendingEspnGamesSilent(options={}){
   const silent=options.silent===true;
   const summary=document.getElementById('espnSummary');
   const results=document.getElementById('espnResults');
-  const pending=data.games.filter(g=>g.espnId && g.espnCompleted!==true);
+  const pending=data.games.filter(g=>g.espnId && (g.espnCompleted!==true || !hasPenaltyScore(g)));
 
   if(!pending.length){
-    if(!silent)alert('Nenhum jogo pendente com vínculo ESPN encontrado.');
+    if(!silent)alert('Nenhum jogo ESPN pendente ou finalizado sem pênaltis encontrado.');
     return {updated:0,scoreUpdated:0,finalized:0,notFound:0,pending:0};
   }
 
-  if(summary)summary.textContent=silent?'Auto ESPN: atualizando silenciosamente...':'Atualizando jogos pendentes pela ESPN...';
+  if(summary)summary.textContent=silent?'Auto ESPN: atualizando silenciosamente...':'Atualizando jogos ESPN pela ESPN...';
   if(results && !silent)results.innerHTML='';
 
   const dates=buildEspnDatesForPending(pending);
@@ -557,7 +634,7 @@ async function syncPendingEspnGamesSilent(options={}){
   renderEspnPreview();
 
   if(summary){
-    summary.innerHTML=`<strong>${silent?'Auto ESPN executado.':'Jogos pendentes atualizados.'}</strong><br>${updated} atualizado(s) • ${scoreUpdated} placar(es) alterado(s) • ${finalized} finalizado(s) • ${notFound} não encontrado(s)`;
+    summary.innerHTML=`<strong>${silent?'Auto ESPN executado.':'Jogos ESPN atualizados.'}</strong><br>${updated} atualizado(s) • ${scoreUpdated} placar(es) alterado(s) • ${finalized} finalizado(s) • ${notFound} não encontrado(s)`;
   }
 
   return {updated,scoreUpdated,finalized,notFound,pending:pending.length};
@@ -565,6 +642,9 @@ async function syncPendingEspnGamesSilent(options={}){
 
 function hasLiveGameAdmin(){
   return data.games.some(g=>g.espnId && g.espnCompleted!==true && isLiveGameAdmin(g));
+}
+function countEspnSyncTargets(){
+  return data.games.filter(g=>g.espnId && (g.espnCompleted!==true || !hasPenaltyScore(g))).length;
 }
 
 function updateAutoEspnStatus(extra=''){
@@ -654,18 +734,18 @@ async function runAutoEspnNow(){
 }
 
 async function updatePendingEspnGames(){
-  const pending=data.games.filter(g=>g.espnId && g.espnCompleted!==true);
-  if(!pending.length){alert('Nenhum jogo pendente com vínculo ESPN encontrado.');return;}
-  if(!confirm(`Atualizar ${pending.length} jogo(s) pendente(s) pela ESPN e salvar no Firebase?`))return;
+  const pending=data.games.filter(g=>g.espnId && (g.espnCompleted!==true || !hasPenaltyScore(g)));
+  if(!pending.length){alert('Nenhum jogo ESPN pendente ou finalizado sem pênaltis encontrado.');return;}
+  if(!confirm(`Atualizar ${pending.length} jogo(s) ESPN pela ESPN e salvar no Firebase?\n\nIsso inclui jogos pendentes e jogos já finalizados que ainda estão sem pênaltis.`))return;
 
   try{
     const r=await syncPendingEspnGamesSilent({silent:false});
-    alert(`Atualização dos pendentes concluída.\n\n${r.updated} jogo(s) atualizado(s)\n${r.scoreUpdated} placar(es) alterado(s)\n${r.finalized} jogo(s) finalizado(s)\n${r.notFound} não encontrado(s)`);
+    alert(`Atualização ESPN concluída.\n\n${r.updated} jogo(s) atualizado(s)\n${r.scoreUpdated} placar(es) alterado(s)\n${r.finalized} jogo(s) finalizado(s)\n${r.notFound} não encontrado(s)`);
   }catch(e){
     console.error(e);
     const summary=document.getElementById('espnSummary');
-    if(summary)summary.textContent='Erro ao atualizar pendentes: '+e.message;
-    alert('Erro ao atualizar pendentes: '+e.message);
+    if(summary)summary.textContent='Erro ao atualizar jogos ESPN: '+e.message;
+    alert('Erro ao atualizar jogos ESPN: '+e.message);
   }
 }
 async function importSelectedEspn(){
@@ -678,7 +758,7 @@ async function importSelectedEspn(){
     let g=findExistingGameForEspn(item);
     if(!g){
       const guesses={};data.participants.forEach(p=>guesses[p.id]={home:'',away:''});
-      g={id:'g_espn_'+item.espnId,round:item.round,date:item.date,time:item.time,home:item.home,away:item.away,homeScore:item.homeScore,awayScore:item.awayScore,guesses};
+      g={id:'g_espn_'+item.espnId,round:item.round,date:item.date,time:item.time,home:item.home,away:item.away,homeScore:item.homeScore,awayScore:item.awayScore,homePenaltyScore:item.homePenaltyScore||'',awayPenaltyScore:item.awayPenaltyScore||'',guesses};
       data.games.push(g);added++;
     }else{
       updated++;
